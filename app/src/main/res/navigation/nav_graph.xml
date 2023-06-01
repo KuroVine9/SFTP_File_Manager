@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/accountListFragment">
+
+    <fragment
+        android:id="@+id/accountListFragment"
+        android:name="com.kuro9.sftpfilemanager.fragment.AccountListFragment"
+        android:label="Account List"
+        tools:layout="@layout/fragment_account_list">
+        <action
+            android:id="@+id/action_accountListFragment_to_accountDetailFragment"
+            app:destination="@id/accountDetailFragment" />
+        <action
+            android:id="@+id/action_accountListFragment_to_addAccountFragment"
+            app:destination="@id/addAccountFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/accountDetailFragment"
+        android:name="com.kuro9.sftpfilemanager.fragment.AccountDetailFragment"
+        android:label="AccountDetailFragment">
+        <action
+            android:id="@+id/action_accountDetailFragment_to_accountListFragment"
+            app:destination="@id/accountListFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addAccountFragment"
+        android:name="com.kuro9.sftpfilemanager.fragment.AddAccountFragment"
+        android:label="AddAccountFragment">
+        <action
+            android:id="@+id/action_addAccountFragment_to_accountListFragment"
+            app:destination="@id/accountListFragment" />
+    </fragment>
+</navigation>
