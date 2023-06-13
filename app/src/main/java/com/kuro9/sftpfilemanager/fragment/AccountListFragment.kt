@@ -72,8 +72,10 @@ class AccountListFragment : Fragment() {
         }
 
         binding.floatingActionButton.setOnClickListener {
+//            val action =
+//                AccountListFragmentDirections.actionAccountListFragmentToAddAccountFragment()
             val action =
-                AccountListFragmentDirections.actionAccountListFragmentToAddAccountFragment()
+                AccountListFragmentDirections.actionAccountListFragmentToAccountDetailFragment()
             findNavController().navigate(action)
         }
 

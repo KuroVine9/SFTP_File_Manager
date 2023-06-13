@@ -26,7 +26,11 @@ class AccountDetailFragment : Fragment() {
             (activity?.application as AccountApplication).database.accountDao()
         )
     }
+
+    enum class OPMODE { ADD, EDIT }
+
     private lateinit var account: Account
+    private lateinit var mode: OPMODE
     private var intent_return: String? = null
     private var _binding: FragmentAccountDetailBinding? = null
     private val binding get() = _binding!!
@@ -39,12 +43,6 @@ class AccountDetailFragment : Fragment() {
             textinputAccountPassword.setText(account.password)
             textinputAccountKey.setText(intent_return ?: account.key)
             textinputAccountKeypass.setText(account.key_passphrase)
-            floatingActionButton.setOnClickListener {
-                saveAccount(account)
-                val action =
-                    AccountDetailFragmentDirections.actionAccountDetailFragmentToAccountListFragment()
-                findNavController().navigate(action)
-            }
         }
         intent_return = null
     }
@@ -104,17 +102,39 @@ class AccountDetailFragment : Fragment() {
             arguments?.let {
                 val id = it.getInt("id")
                 if (id < 0) {
-                    errorToastMessage()
-                    val action =
-                        AccountDetailFragmentDirections.actionAccountDetailFragmentToAccountListFragment()
-                    findNavController().navigate(action)
+                    // add모드
+                    mode = OPMODE.ADD
+                    account = Account(
+                        name = "",
+                        host = "",
+                        port = 22,
+                        key = "",
+                        key_passphrase = "",
+                        password = ""
+                    )
                 } else {
+                    mode = OPMODE.EDIT
                     viewModel.getAccount(id).observe(this.viewLifecycleOwner) { acc ->
                         account = acc
                         bindText()
                     }
                 }
             }
+        }
+        binding.floatingActionButtonDetailsave.setOnClickListener {
+            account.apply {
+                name = binding.textinputAccountName.text.toString()
+                key = binding.textinputAccountKey.text.toString()
+                key_passphrase = binding.textinputAccountKeypass.text.toString()
+                host = binding.textinputAccountAddress.text.toString()
+                port = binding.textinputAccountPort.text.toString().toInt()
+                password = binding.textinputAccountPassword.text.toString()
+            }
+            if (mode == OPMODE.EDIT) saveAccount(account) else addAccount()
+            val action =
+                AccountDetailFragmentDirections.actionAccountDetailFragmentToAccountListFragment()
+            findNavController().navigate(action)
+            Log.d("floatb", "clicked")
         }
     }
 
@@ -158,6 +178,12 @@ class AccountDetailFragment : Fragment() {
                     password = textinputAccountPassword.text.toString()
                 )
             )
+        }
+    }
+
+    private fun addAccount() {
+        binding.apply {
+            viewModel.addAccount(account)
         }
     }
 }

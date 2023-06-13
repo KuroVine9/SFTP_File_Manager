@@ -53,6 +53,12 @@ class AccountViewModel(private val accountDAO: AccountDAO) : ViewModel() {
         }
     }
 
+    fun addAccount(account: Account) {
+        viewModelScope.launch {
+            accountDAO.insert(account)
+        }
+    }
+
     fun deleteAccount(id: Int) {
         viewModelScope.launch {
             accountDAO.delete(id)
