@@ -3,8 +3,6 @@ package com.kuro9.sftpfilemanager.viewmodel
 import androidx.lifecycle.*
 import com.kuro9.sftpfilemanager.data.Account
 import com.kuro9.sftpfilemanager.data.AccountDAO
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AccountViewModel(private val accountDAO: AccountDAO) : ViewModel() {
@@ -24,6 +22,12 @@ class AccountViewModel(private val accountDAO: AccountDAO) : ViewModel() {
             accountDAO.update(
                 Account(id, name, key, key_passphrase, host, port.toInt(), password)
             )
+        }
+    }
+
+    fun updateAccount(account: Account) {
+        viewModelScope.launch {
+            accountDAO.update(account)
         }
     }
 
@@ -56,6 +60,8 @@ class AccountViewModel(private val accountDAO: AccountDAO) : ViewModel() {
     ): Boolean {
         return !(name.isBlank() || host.isBlank() || port.isBlank())
     }
+
+    fun getAccount(id: Int): LiveData<Account> = accountDAO.getAccount(id).asLiveData()
 
 }
 

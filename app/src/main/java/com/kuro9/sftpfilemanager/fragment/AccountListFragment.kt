@@ -38,9 +38,8 @@ class AccountListFragment : Fragment() {
 
         val adapter = AccountListAdapter {
             val action =
-                AccountListFragmentDirections.actionAccountListFragmentToAccountDetailFragment()
+                AccountListFragmentDirections.actionAccountListFragmentToAccountDetailFragment(id = it.id)
             this.findNavController().navigate(action)
-            //TODO("it.id 인수를 넣어줘야 할 거 같은데?")
         }
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@AccountListFragment.context)

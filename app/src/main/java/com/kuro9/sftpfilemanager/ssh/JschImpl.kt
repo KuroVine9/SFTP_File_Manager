@@ -11,7 +11,8 @@ object JschImpl {
     private var _channel_sftp: ChannelSftp? = null
     private var _percent: Long = 0
     private var _account: Account? = null
-    enum class MODE{UPLOAD, DOWNLOAD}
+
+    enum class MODE { UPLOAD, DOWNLOAD }
 
     fun testConnection(account: Account): Boolean {
         val result = connect(account)
@@ -20,15 +21,16 @@ object JschImpl {
     }
 
     fun setIdentify(account: Account): Boolean {
-        if(testConnection(account)) {
+        if (testConnection(account)) {
             _account = account
             return true
         }
         return false
     }
+
     private fun connect(account: Account): Boolean {
         try {
-            account.apply{
+            account.apply {
                 val jsch = JSch()
                 if (key !== null) jsch.addIdentity(key, key_passphrase)
                 _session = jsch.getSession(name, host, port)
@@ -36,8 +38,7 @@ object JschImpl {
                 _session!!.setConfig("StrictHostKeyChecking", "no")
                 _session!!.connect()
             }
-        }
-        catch (e: JSchException) {
+        } catch (e: JSchException) {
             Log.d("JschImpl", "User Failed to Login")
             this._account = null
             return false
@@ -47,7 +48,7 @@ object JschImpl {
     }
 
     fun command(command: String): String? {
-        if (_session === null && (_account?.let{ connect(it) } == false)) {
+        if (_session === null && (_account?.let { connect(it) } == false)) {
             Log.e("JschImpl", "No Available Session Connections")
             return null
         }
@@ -61,18 +62,15 @@ object JschImpl {
             _channel_exec!!.connect()
             while (_channel_exec!!.isConnected) Thread.sleep(100)
             response = response_stream.toString("UTF-8")
-        }
-        catch (e: JSchException) {
+        } catch (e: JSchException) {
             Log.e("JschImpl", e.message!!)
             e.printStackTrace()
             return null
-        }
-        catch (e: InterruptedException) {
+        } catch (e: InterruptedException) {
             Log.e("JschImpl", e.message!!)
             e.printStackTrace()
             return null
-        }
-        finally {
+        } finally {
             disconnect()
         }
         return response
@@ -80,14 +78,14 @@ object JschImpl {
 
     fun moveFile(source_path: String, destination_path: String, mode: MODE): Boolean {
         _percent = 0 //초기화
-        if (_session === null && (_account?.let{ connect(it) } == false)) {
+        if (_session === null && (_account?.let { connect(it) } == false)) {
             Log.e("JschImpl", "No Available Session Connections")
             return false
         }
         try {
             _channel_sftp = _session!!.openChannel("sftp") as ChannelSftp
             _channel_sftp!!.connect()
-            when(mode){
+            when (mode) {
                 MODE.UPLOAD ->
                     _channel_sftp!!.put(source_path, destination_path, SystemOutProgressMonitor)
                 MODE.DOWNLOAD ->
@@ -138,6 +136,8 @@ object JschImpl {
             return true
         }
 
-        override fun end() { Log.d("JschImpl", "File Transfer Finished") }
+        override fun end() {
+            Log.d("JschImpl", "File Transfer Finished")
+        }
     }
 }

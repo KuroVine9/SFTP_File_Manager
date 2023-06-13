@@ -23,7 +23,13 @@
         android:label="AccountDetailFragment">
         <action
             android:id="@+id/action_accountDetailFragment_to_accountListFragment"
-            app:destination="@id/accountListFragment" />
+            app:destination="@id/accountListFragment"
+            app:popUpTo="@id/accountListFragment"
+            app:popUpToInclusive="true" />
+        <argument
+            android:name="id"
+            app:argType="integer"
+            android:defaultValue="-1" />
     </fragment>
     <fragment
         android:id="@+id/addAccountFragment"
@@ -31,6 +37,8 @@
         android:label="AddAccountFragment">
         <action
             android:id="@+id/action_addAccountFragment_to_accountListFragment"
-            app:destination="@id/accountListFragment" />
+            app:destination="@id/accountListFragment"
+            app:popUpTo="@id/accountListFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 </navigation>

@@ -55,7 +55,7 @@ class AccountListAdapter(private val onClicked: (Account) -> Unit) :
                 (oldItem.id == newItem.id)
 
             override fun areContentsTheSame(oldItem: Account, newItem: Account): Boolean =
-                (oldItem == newItem)
+                (oldItem.name == newItem.name)
         }
     }
 }
