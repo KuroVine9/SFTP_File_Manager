@@ -53,6 +53,12 @@ class AccountViewModel(private val accountDAO: AccountDAO) : ViewModel() {
         }
     }
 
+    fun deleteAccount(id: Int) {
+        viewModelScope.launch {
+            accountDAO.delete(id)
+        }
+    }
+
     fun isValidAccount(
         name: String,
         host: String,

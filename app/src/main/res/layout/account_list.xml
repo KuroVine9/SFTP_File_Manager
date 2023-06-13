@@ -1,49 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:descendantFocusability="blocksDescendants">
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="4dp" >
 
-    <TextView
-        android:id="@+id/account_name"
-        style="@style/Account.ListItemTextView"
-        android:layout_width="80dp"
-        android:layout_marginStart="8dp"
-        android:fontFamily="sans-serif"
-        app:layout_constraintEnd_toStartOf="@+id/account_address"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="root" />
+    <androidx.constraintlayout.widget.ConstraintLayout
 
-    <TextView
-        android:id="@+id/account_address"
-        style="@style/Account.ListItemTextView"
-        android:layout_width="200dp"
-        android:layout_below="@+id/account_name"
-        android:layout_marginStart="8dp"
-        android:fontFamily="sans-serif-medium"
-        android:textAlignment="center"
-        app:layout_constraintEnd_toStartOf="@+id/account_port"
-        app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintStart_toEndOf="@+id/account_name"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="123.456.789.123" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:descendantFocusability="blocksDescendants">
 
-    <TextView
-        android:id="@+id/account_port"
-        style="@style/Account.ListItemTextView"
-        android:layout_width="80dp"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="8dp"
-        android:fontFamily="sans-serif-medium"
-        android:textAlignment="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="22" />
+        <ImageView
+            android:id="@+id/justimage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:scaleX="1.5"
+            android:scaleY="1.5"
+            android:translationY="17dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/presence_online" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/account_name"
+            style="@style/Account.ListItemTextView"
+            android:layout_width="80dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textSize="20sp"
+            app:layout_constraintStart_toEndOf="@+id/justimage"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="root" />
+
+        <TextView
+            android:id="@+id/account_addressandport"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/account_name"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/account_name"
+            tools:text="123.456.789.123" />
+
+        <TextView
+            android:id="@+id/editbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            android:text="EDIT"
+            android:textColor="#5FC14D"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/account_addressandport"
+            app:layout_constraintTop_toBottomOf="@+id/account_addressandport" />
+
+        <TextView
+            android:id="@+id/deletebutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:text="DELETE"
+            android:textColor="#EC2828"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@+id/editbutton"
+            app:layout_constraintTop_toBottomOf="@+id/account_addressandport" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

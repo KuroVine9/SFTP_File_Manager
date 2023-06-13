@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kuro9.sftpfilemanager.AccountListAdapter
 import com.kuro9.sftpfilemanager.application.AccountApplication
 import com.kuro9.sftpfilemanager.databinding.FragmentAccountListBinding
@@ -36,13 +36,34 @@ class AccountListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = AccountListAdapter {
-            val action =
-                AccountListFragmentDirections.actionAccountListFragmentToAccountDetailFragment(id = it.id)
-            this.findNavController().navigate(action)
-        }
-        binding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(this@AccountListFragment.context)
+        val adapter = AccountListAdapter(
+            onEditClicked = {
+                this.findNavController().navigate(
+                    AccountListFragmentDirections.actionAccountListFragmentToAccountDetailFragment(
+                        id = it.id
+                    )
+                )
+            },
+            onCardClicked = {// TODO: 로그인으로 바꾸기
+                this.findNavController().navigate(
+                    AccountListFragmentDirections.actionAccountListFragmentToAccountDetailFragment(
+                        id = it.id
+                    )
+                )
+            },
+            onDeleteClicked = {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("!!WARNING!!")
+                    .setMessage("Are you sure to delete this account?")
+                    .setCancelable(true)
+                    .setNegativeButton("No") { _, _ -> }
+                    .setPositiveButton("Yes") { _, _ ->
+                        viewModel.deleteAccount(it.id)
+                    }.show()
+            }
+        )
+        binding.accountListRecyclerView.apply {
+            // layoutManager = LinearLayoutManager(this@AccountListFragment.context)
             this.adapter = adapter
         }
 
@@ -55,6 +76,7 @@ class AccountListFragment : Fragment() {
                 AccountListFragmentDirections.actionAccountListFragmentToAddAccountFragment()
             findNavController().navigate(action)
         }
+
     }
 
     override fun onDestroyView() {

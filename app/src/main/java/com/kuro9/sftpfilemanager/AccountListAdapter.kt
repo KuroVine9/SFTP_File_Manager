@@ -8,17 +8,22 @@ import androidx.recyclerview.widget.RecyclerView
 import com.kuro9.sftpfilemanager.data.Account
 import com.kuro9.sftpfilemanager.databinding.AccountListBinding
 
-class AccountListAdapter(private val onClicked: (Account) -> Unit) :
+class AccountListAdapter(
+    private val onCardClicked: (Account) -> Unit,
+    private val onEditClicked: (Account) -> Unit,
+    private val onDeleteClicked: (Account) -> Unit
+) :
     ListAdapter<Account, AccountListAdapter.AccountViewHolder>(DiffCallback) {
 
-    class AccountViewHolder(private var binding: AccountListBinding) :
+    inner class AccountViewHolder(private var binding: AccountListBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(account: Account) {
             binding.apply {
                 accountName.text = account.name
-                accountAddress.text = account.host
-                accountPort.text = account.port.toString()
+                accountAddressandport.text = String.format("%s:%d", account.host, account.port)
+                editbutton.setOnClickListener { onEditClicked(account) }
+                deletebutton.setOnClickListener { onDeleteClicked(account) }
             }
         }
 //        val accName: TextView = view.findViewById(R.id.account_name)
@@ -42,9 +47,9 @@ class AccountListAdapter(private val onClicked: (Account) -> Unit) :
 //        holder.accAddress.text = account.host
 //        holder.accPort.text = account.port.toString()
         val current = getItem(position)
-        holder.itemView.setOnClickListener {
-            onClicked(current)
-        }
+//        holder.itemView.setOnClickListener {
+//            onCardClicked(current)
+//        }
         holder.bind(current)
     }
 

@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace 'com.kuro9.sftpfilemanager'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.kuro9.sftpfilemanager"
         minSdk 24
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -34,7 +34,7 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     namespace 'com.kuro9.sftpfilemanager'
 }

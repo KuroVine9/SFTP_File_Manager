@@ -53,9 +53,9 @@ class AddAccountFragment : Fragment() {
     private fun isValidAccount(): Boolean {
 
         return viewModel.isValidAccount(
-            binding.accountName.text.toString(),
-            binding.accountAddress.text.toString(),
-            binding.accountPorts.text.toString()
+            binding.accountNameAdd.text.toString(),
+            binding.accountAddressAdd.text.toString(),
+            binding.accountPortsAdd.text.toString()
         )
     }
 
@@ -64,9 +64,9 @@ class AddAccountFragment : Fragment() {
      */
     private fun bind(account: Account) {
         binding.apply {
-            accountName.setText(account.name, TextView.BufferType.SPANNABLE)
-            accountAddress.setText(account.host, TextView.BufferType.SPANNABLE)
-            accountPorts.setText(account.port.toString(), TextView.BufferType.SPANNABLE)
+            accountNameAdd.setText(account.name, TextView.BufferType.SPANNABLE)
+            accountAddressAdd.setText(account.host, TextView.BufferType.SPANNABLE)
+            accountPortsAdd.setText(account.port.toString(), TextView.BufferType.SPANNABLE)
             // saveAction.setOnClickListener { updateAccount() }
         }
     }
@@ -77,9 +77,9 @@ class AddAccountFragment : Fragment() {
     private fun addNewAccount() {
         if (isValidAccount()) {
             viewModel.addAccount(
-                name = binding.accountName.text.toString(),
-                host = binding.accountAddress.text.toString(),
-                port = binding.accountPorts.text.toString(),
+                name = binding.accountNameAdd.text.toString(),
+                host = binding.accountAddressAdd.text.toString(),
+                port = binding.accountPortsAdd.text.toString(),
                 key = null,
                 key_passphrase = null,
                 password = null
