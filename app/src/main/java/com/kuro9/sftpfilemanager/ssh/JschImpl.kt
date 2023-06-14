@@ -1,7 +1,13 @@
 package com.kuro9.sftpfilemanager.ssh
 
 import android.util.Log
-import com.jcraft.jsch.*
+import com.jcraft.jsch.ChannelExec
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
+import com.jcraft.jsch.Session
+import com.jcraft.jsch.SftpException
+import com.jcraft.jsch.SftpProgressMonitor
 import com.kuro9.sftpfilemanager.data.Account
 import java.io.ByteArrayOutputStream
 
@@ -32,14 +38,21 @@ object JschImpl {
         try {
             account.apply {
                 val jsch = JSch()
-                if (key !== null) jsch.addIdentity(key, key_passphrase)
+                // if (key !== null && key != "") jsch.addIdentity(key, key_passphrase)
+                if (key !== null && key != "") jsch.addIdentity(
+                    name,
+                    key!!.toByteArray(),
+                    null,
+                    key_passphrase?.toByteArray()
+                )
                 _session = jsch.getSession(name, host, port)
                 if (password !== null) _session!!.setPassword(password)
                 _session!!.setConfig("StrictHostKeyChecking", "no")
                 _session!!.connect()
             }
         } catch (e: JSchException) {
-            Log.d("JschImpl", "User Failed to Login")
+            Log.d("JschImpl", e.stackTraceToString())
+            e.printStackTrace()
             this._account = null
             return false
         }
@@ -88,6 +101,7 @@ object JschImpl {
             when (mode) {
                 MODE.UPLOAD ->
                     _channel_sftp!!.put(source_path, destination_path, SystemOutProgressMonitor)
+
                 MODE.DOWNLOAD ->
                     _channel_sftp!!.get(source_path, destination_path, SystemOutProgressMonitor)
             }

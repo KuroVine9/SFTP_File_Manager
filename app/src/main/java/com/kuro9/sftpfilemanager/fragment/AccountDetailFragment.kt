@@ -2,6 +2,8 @@ package com.kuro9.sftpfilemanager.fragment
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,14 +12,22 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.kuro9.sftpfilemanager.application.AccountApplication
 import com.kuro9.sftpfilemanager.data.Account
 import com.kuro9.sftpfilemanager.databinding.FragmentAccountDetailBinding
+import com.kuro9.sftpfilemanager.ssh.JschImpl
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModel
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModelFactory
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 
 
 class AccountDetailFragment : Fragment() {
@@ -47,16 +57,45 @@ class AccountDetailFragment : Fragment() {
         intent_return = null
     }
 
+    @Throws(IOException::class)
+    private fun readTextFromUri(uri: Uri?): String {
+        if (uri === null) return ""
+
+        val stringBuilder = StringBuilder()
+        requireActivity().contentResolver.openInputStream(uri)?.use { inputStream ->
+            BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                var line: String? = reader.readLine()
+                while (line != null) {
+                    stringBuilder.append("$line\n")
+                    line = reader.readLine()
+                }
+            }
+        }
+        return stringBuilder.toString()
+    }
+
     private fun openActivityResultLauncher(): ActivityResultLauncher<Intent> {
         val resultLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
                 if (result.resultCode == Activity.RESULT_OK) {
-                    Log.d("myintent", "${result.data?.data?.path}")
-                    account.key = result.data?.data?.path
-                    binding.textinputAccountKey.setText(result.data?.data?.path)
-                    intent_return = result.data?.data?.path
+                    result.data?.also { url ->
+                        Log.d("myintent", url.data.toString())
+                        Log.d("myintent", readTextFromUri(url.data))
+                        intent_return = readTextFromUri(url.data)
+                        binding.textinputAccountKey.setText(intent_return)
+                        account.key = intent_return
+                    }
+                    Log.d("myintent", account.toString())
+                    GlobalScope.launch {
+                        Log.d("myintent", JschImpl.testConnection(account).toString())
+                        JschImpl.setIdentify(account)
+                        Log.d("myintent", JschImpl.command("pwd; ls;") ?: "none")
+                    }
+
+                    // requireActivity().contentResolver.
+
                 } else {
-                    Log.e("myintent", "fil")
+                    Log.e("myintent", "fail to open file")
                 }
             }
         return resultLauncher
@@ -67,6 +106,21 @@ class AccountDetailFragment : Fragment() {
         TODO("Not yet implemented")
     }
 
+    private fun checkPermission(view: View) {
+        val storagePermission = ContextCompat.checkSelfPermission(
+            requireContext(),
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+
+        if (storagePermission != PackageManager.PERMISSION_GRANTED)
+        //권한 요청
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
+                1
+            )
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -74,11 +128,16 @@ class AccountDetailFragment : Fragment() {
     ): View? {
         _binding = FragmentAccountDetailBinding.inflate(inflater, container, false)
         val activityLauncher = openActivityResultLauncher()
+        val takeFlags: Int =
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
         binding.button2.setOnClickListener {
+            checkPermission(it)
             val intent: Intent = Intent()
             intent.type = "*/*"
-            intent.action = Intent.ACTION_GET_CONTENT
+            intent.action = Intent.ACTION_OPEN_DOCUMENT
             activityLauncher.launch(intent)
+            requireActivity().contentResolver
         }
         return binding.root
     }
@@ -135,6 +194,12 @@ class AccountDetailFragment : Fragment() {
                 AccountDetailFragmentDirections.actionAccountDetailFragmentToAccountListFragment()
             findNavController().navigate(action)
             Log.d("floatb", "clicked")
+            Log.d("floatb", account.toString())
+            GlobalScope.launch {
+                JschImpl.setIdentify(account)
+                Log.d("floatb", JschImpl.command("ls")!!)
+            }
+
         }
     }
 
