@@ -34,6 +34,8 @@ object JschImpl {
         return false
     }
 
+    fun isCacheAccountExist(): Boolean = _account !== null
+
     private fun connect(account: Account): Boolean {
         try {
             account.apply {

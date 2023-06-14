@@ -7,11 +7,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.kuro9.sftpfilemanager.data.Account
 import com.kuro9.sftpfilemanager.databinding.AccountListBinding
+import com.kuro9.sftpfilemanager.fragment.AccountListFragment
 
 class AccountListAdapter(
-    private val onCardClicked: (Account) -> Unit,
+    private val onLoginClicked: (Account) -> Unit,
     private val onEditClicked: (Account) -> Unit,
-    private val onDeleteClicked: (Account) -> Unit
+    private val onDeleteClicked: (Account) -> Unit,
+    private val layout: AccountListFragment.Layout
 ) :
     ListAdapter<Account, AccountListAdapter.AccountViewHolder>(DiffCallback) {
 
@@ -22,34 +24,34 @@ class AccountListAdapter(
             binding.apply {
                 accountName.text = account.name
                 accountAddressandport.text = String.format("%s:%d", account.host, account.port)
+                loginbutton.setOnClickListener { onLoginClicked(account) }
                 editbutton.setOnClickListener { onEditClicked(account) }
                 deletebutton.setOnClickListener { onDeleteClicked(account) }
             }
         }
-//        val accName: TextView = view.findViewById(R.id.account_name)
-//        val accAddress: TextView = view.findViewById(R.id.account_address)
-//        val accPort: TextView = view.findViewById(R.id.account_port)
+
     }
 
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AccountViewHolder {
-        return AccountViewHolder(
-            AccountListBinding.inflate(
-                LayoutInflater.from(
-                    parent.context
-                )
-            )
-        )
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val layoutResId = when (layout) {
+            AccountListFragment.Layout.Grid -> R.layout.fragment_account_list
+            AccountListFragment.Layout.Linear -> R.layout.linear_fragment_account_list
+        }
+        val binding = AccountListBinding.inflate(layoutInflater, parent, false)
+        return AccountViewHolder(binding)
+//        return AccountViewHolder(
+//            AccountListBinding.inflate(
+//                LayoutInflater.from(
+//                    parent.context
+//                )
+//            )
+//        )
     }
 
     override fun onBindViewHolder(holder: AccountViewHolder, position: Int) {
-//        val account = getItem()
-//        holder.accName.text = account.name
-//        holder.accAddress.text = account.host
-//        holder.accPort.text = account.port.toString()
         val current = getItem(position)
-//        holder.itemView.setOnClickListener {
-//            onCardClicked(current)
-//        }
         holder.bind(current)
     }
 

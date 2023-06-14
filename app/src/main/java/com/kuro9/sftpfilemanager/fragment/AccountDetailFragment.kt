@@ -20,11 +20,8 @@ import androidx.navigation.fragment.findNavController
 import com.kuro9.sftpfilemanager.application.AccountApplication
 import com.kuro9.sftpfilemanager.data.Account
 import com.kuro9.sftpfilemanager.databinding.FragmentAccountDetailBinding
-import com.kuro9.sftpfilemanager.ssh.JschImpl
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModel
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModelFactory
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -80,30 +77,15 @@ class AccountDetailFragment : Fragment() {
                 if (result.resultCode == Activity.RESULT_OK) {
                     result.data?.also { url ->
                         Log.d("myintent", url.data.toString())
-                        Log.d("myintent", readTextFromUri(url.data))
                         intent_return = readTextFromUri(url.data)
                         binding.textinputAccountKey.setText(intent_return)
                         account.key = intent_return
                     }
-                    Log.d("myintent", account.toString())
-                    GlobalScope.launch {
-                        Log.d("myintent", JschImpl.testConnection(account).toString())
-                        JschImpl.setIdentify(account)
-                        Log.d("myintent", JschImpl.command("pwd; ls;") ?: "none")
-                    }
-
-                    // requireActivity().contentResolver.
-
                 } else {
                     Log.e("myintent", "fail to open file")
                 }
             }
         return resultLauncher
-    }
-
-    private fun errorToastMessage() {
-        Log.e("acc_d", "errtoast")
-        TODO("Not yet implemented")
     }
 
     private fun checkPermission(view: View) {
@@ -134,7 +116,7 @@ class AccountDetailFragment : Fragment() {
         binding.button2.setOnClickListener {
             checkPermission(it)
             val intent: Intent = Intent()
-            intent.type = "*/*"
+            intent.type = "application/octet-stream"
             intent.action = Intent.ACTION_OPEN_DOCUMENT
             activityLauncher.launch(intent)
             requireActivity().contentResolver
@@ -181,6 +163,8 @@ class AccountDetailFragment : Fragment() {
             }
         }
         binding.floatingActionButtonDetailsave.setOnClickListener {
+            if (!checkAllInputValid()) return@setOnClickListener
+
             account.apply {
                 name = binding.textinputAccountName.text.toString()
                 key = binding.textinputAccountKey.text.toString()
@@ -189,18 +173,31 @@ class AccountDetailFragment : Fragment() {
                 port = binding.textinputAccountPort.text.toString().toInt()
                 password = binding.textinputAccountPassword.text.toString()
             }
+
             if (mode == OPMODE.EDIT) saveAccount(account) else addAccount()
             val action =
-                AccountDetailFragmentDirections.actionAccountDetailFragmentToAccountListFragment()
+                AccountDetailFragmentDirections.actionAccountDetailFragmentToAccountListFragment(id = account.id)
             findNavController().navigate(action)
-            Log.d("floatb", "clicked")
-            Log.d("floatb", account.toString())
-            GlobalScope.launch {
-                JschImpl.setIdentify(account)
-                Log.d("floatb", JschImpl.command("ls")!!)
-            }
-
         }
+    }
+
+    private fun checkAllInputValid(): Boolean {
+        var result = true
+        binding.apply {
+            if (textinputAccountName.text.toString().isBlank()) {
+                layoutTextinputAccountName.error = "Empty field"
+                result = false
+            }
+            if (textinputAccountAddress.text.toString().isBlank()) {
+                layoutTextinputAccountAddress.error = "Empty field"
+                result = false
+            }
+            if (textinputAccountPort.text.toString().isBlank()) {
+                layoutTextinputAccountPort.error = "Empty field"
+                result = false
+            }
+        }
+        return result
     }
 
     override fun onDestroyView() {
