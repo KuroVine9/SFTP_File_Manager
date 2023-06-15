@@ -51,9 +51,11 @@ class AccountListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        layout = if (resources.displayMetrics.widthPixels >= 1080) Layout.Grid
-        else Layout.Linear
+        val width = with(resources.displayMetrics) { widthPixels / xdpi }
+        Log.d("dpi", "$width")
+        layout =
+            if (width > 4) Layout.Grid
+            else Layout.Linear
 
 
         val adapter = AccountListAdapter(
@@ -100,8 +102,7 @@ class AccountListFragment : Fragment() {
                     .setPositiveButton("Yes") { _, _ ->
                         viewModel.deleteAccount(it.id)
                     }.show()
-            },
-            layout = layout
+            }
         )
         binding.accountListRecyclerView.apply {
             if (layout == Layout.Grid) {
