@@ -8,7 +8,7 @@ import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
 import com.jcraft.jsch.SftpProgressMonitor
-import com.kuro9.sftpfilemanager.data.Account
+import com.kuro9.sftpfilemanager.data.AccountWithPrvKey
 import java.io.ByteArrayOutputStream
 
 object JschImpl {
@@ -16,19 +16,19 @@ object JschImpl {
     private var _channel_exec: ChannelExec? = null
     private var _channel_sftp: ChannelSftp? = null
     private var _percent: Long = 0
-    private var _account: Account? = null
+    private var _account: AccountWithPrvKey? = null
 
     enum class MODE { UPLOAD, DOWNLOAD }
 
-    fun testConnection(account: Account): Boolean {
-        val result = connect(account)
+    private fun testConnection(identity: AccountWithPrvKey): Boolean {
+        val result = connect(identity)
         disconnect()
         return result
     }
 
-    fun setIdentify(account: Account): Boolean {
-        if (testConnection(account)) {
-            _account = account
+    fun setIdentify(identity: AccountWithPrvKey): Boolean {
+        if (testConnection(identity)) {
+            _account = identity
             return true
         }
         return false
@@ -36,19 +36,20 @@ object JschImpl {
 
     fun isCacheAccountExist(): Boolean = _account !== null
 
-    private fun connect(account: Account): Boolean {
+    private fun connect(identity: AccountWithPrvKey): Boolean {
         try {
-            account.apply {
+            identity.apply {
                 val jsch = JSch()
-                // if (key !== null && key != "") jsch.addIdentity(key, key_passphrase)
-                if (key !== null && key != "") jsch.addIdentity(
-                    name,
-                    key!!.toByteArray(),
-                    null,
-                    key_passphrase?.toByteArray()
-                )
-                _session = jsch.getSession(name, host, port)
-                if (password !== null) _session!!.setPassword(password)
+                if (prvKey !== null && prvKey != "") {
+                    jsch.addIdentity(
+                        account.name,
+                        prvKey.toByteArray(),
+                        null,
+                        account.key_passphrase?.toByteArray()
+                    )
+                }
+                _session = jsch.getSession(account.name, account.host, account.port)
+                if (account.password !== null) _session!!.setPassword(account.password)
                 _session!!.setConfig("StrictHostKeyChecking", "no")
                 _session!!.connect()
             }
@@ -58,7 +59,7 @@ object JschImpl {
             this._account = null
             return false
         }
-        this._account = account
+        this._account = identity
         return true
     }
 

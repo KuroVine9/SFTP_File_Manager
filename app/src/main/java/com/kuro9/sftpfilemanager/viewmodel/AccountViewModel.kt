@@ -43,7 +43,7 @@ class AccountViewModel(private val accountDAO: AccountDAO) : ViewModel() {
             accountDAO.insert(
                 Account(
                     name = name,
-                    key = key,
+                    key_path = key,
                     key_passphrase = key_passphrase,
                     host = host,
                     port = port.toInt(),

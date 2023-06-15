@@ -1,5 +1,7 @@
 package com.kuro9.sftpfilemanager.fragment
 
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -8,6 +10,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -19,6 +23,7 @@ import com.kuro9.sftpfilemanager.AccountListAdapter
 import com.kuro9.sftpfilemanager.GridSpacingDecorator
 import com.kuro9.sftpfilemanager.R
 import com.kuro9.sftpfilemanager.application.AccountApplication
+import com.kuro9.sftpfilemanager.data.AccountWithPrvKey
 import com.kuro9.sftpfilemanager.databinding.FragmentAccountListBinding
 import com.kuro9.sftpfilemanager.ssh.JschImpl
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModel
@@ -26,6 +31,10 @@ import com.kuro9.sftpfilemanager.viewmodel.AccountViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStreamReader
 
 class AccountListFragment : Fragment() {
     private val viewModel: AccountViewModel by activityViewModels {
@@ -68,9 +77,19 @@ class AccountListFragment : Fragment() {
             },
             onLoginClicked = {
                 Toast.makeText(context, "로그인 시도중...", Toast.LENGTH_SHORT).show()
+                checkPermission()
+                Log.d("Jsch", "${it.key_path}")
+                var key_text: String? = null
+                try {
+                    key_text = readTextFromUri(Uri.parse(it.key_path))
+                } catch (_: IOException) {
+
+                } catch (_: FileNotFoundException) {
+
+                }
                 lifecycleScope.launch(Dispatchers.IO) {
                     val result: Boolean = withContext(Dispatchers.IO) {
-                        JschImpl.setIdentify(it)
+                        JschImpl.setIdentify(AccountWithPrvKey(it, key_text))
                     }
 
                     Log.d("Jsch", "$result")
@@ -134,5 +153,38 @@ class AccountListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun checkPermission() {
+        val storagePermission = ContextCompat.checkSelfPermission(
+            requireContext(),
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+
+        if (storagePermission != PackageManager.PERMISSION_GRANTED)
+        //권한 요청
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
+                1
+            )
+    }
+
+    @Throws(IOException::class, FileNotFoundException::class)
+    private fun readTextFromUri(uri: Uri?): String {
+        if (uri === null) return ""
+
+        val stringBuilder = StringBuilder()
+        checkPermission()
+        activity?.contentResolver?.openInputStream(uri)?.use { inputStream ->
+            BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                var line: String? = reader.readLine()
+                while (line != null) {
+                    stringBuilder.append("$line\n")
+                    line = reader.readLine()
+                }
+            }
+        }
+        return stringBuilder.toString()
     }
 }

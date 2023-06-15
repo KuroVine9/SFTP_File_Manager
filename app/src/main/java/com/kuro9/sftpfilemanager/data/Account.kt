@@ -7,9 +7,8 @@ import androidx.room.PrimaryKey
 data class Account(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-
     var name: String,
-    var key: String?,
+    var key_path: String?,
     var key_passphrase: String?,
     var host: String,
     var port: Int,

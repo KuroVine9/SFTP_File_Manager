@@ -2,6 +2,7 @@ package com.kuro9.sftpfilemanager.fragment
 
 import android.app.Activity
 import android.content.Intent
+import android.content.Intent.ACTION_OPEN_DOCUMENT
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -12,6 +13,7 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -38,7 +40,7 @@ class AccountDetailFragment : Fragment() {
 
     private lateinit var account: Account
     private lateinit var mode: OPMODE
-    private var intent_return: String? = null
+    private var intent_return: Uri? = null
     private var _binding: FragmentAccountDetailBinding? = null
     private val binding get() = _binding!!
 
@@ -48,7 +50,7 @@ class AccountDetailFragment : Fragment() {
             textinputAccountAddress.setText(account.host)
             textinputAccountPort.setText(account.port.toString())
             textinputAccountPassword.setText(account.password)
-            textinputAccountKey.setText(intent_return ?: account.key)
+            textinputAccountKey.setText(account.key_path)
             textinputAccountKeypass.setText(account.key_passphrase)
         }
         intent_return = null
@@ -77,9 +79,14 @@ class AccountDetailFragment : Fragment() {
                 if (result.resultCode == Activity.RESULT_OK) {
                     result.data?.also { url ->
                         Log.d("myintent", url.data.toString())
-                        intent_return = readTextFromUri(url.data)
-                        binding.textinputAccountKey.setText(intent_return)
-                        account.key = intent_return
+                        intent_return = url.data
+                        binding.textinputAccountKey.setText(intent_return.toString())
+                        account.key_path = intent_return.toString()
+                        url.data?.let {
+                            requireActivity().contentResolver.takePersistableUriPermission(
+                                it, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
+                        }
                     }
                 } else {
                     Log.e("myintent", "fail to open file")
@@ -110,17 +117,23 @@ class AccountDetailFragment : Fragment() {
     ): View? {
         _binding = FragmentAccountDetailBinding.inflate(inflater, container, false)
         val activityLauncher = openActivityResultLauncher()
-        val takeFlags: Int =
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
-        binding.button2.setOnClickListener {
+        binding.addKey.setOnClickListener {
             checkPermission(it)
-            val intent: Intent = Intent()
+            val intent: Intent = Intent(ACTION_OPEN_DOCUMENT)
             intent.type = "application/octet-stream"
-            intent.action = Intent.ACTION_OPEN_DOCUMENT
+            intent.action = ACTION_OPEN_DOCUMENT
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
             activityLauncher.launch(intent)
-            requireActivity().contentResolver
         }
+
+        arguments?.let {
+            (requireActivity() as AppCompatActivity)
+                .supportActionBar?.setDisplayShowTitleEnabled(true)
+            (requireActivity() as AppCompatActivity).supportActionBar?.title =
+                if (it.getInt("id") < 0) "Add Account" else "Edit Account"
+        }
+
         return binding.root
     }
 
@@ -130,14 +143,13 @@ class AccountDetailFragment : Fragment() {
                 account = Account(
                     id = getInt("id"),
                     name = getString("name").toString(),
-                    key = getString("key"),
+                    key_path = getString("key"),
                     key_passphrase = getString("key_passphrase"),
                     host = getString("host").toString(),
                     port = getInt("port"),
                     password = getString("password")
                 )
             }
-
             bindText()
         } else {
             arguments?.let {
@@ -149,7 +161,7 @@ class AccountDetailFragment : Fragment() {
                         name = "",
                         host = "",
                         port = 22,
-                        key = "",
+                        key_path = null,
                         key_passphrase = "",
                         password = ""
                     )
@@ -163,11 +175,11 @@ class AccountDetailFragment : Fragment() {
             }
         }
         binding.floatingActionButtonDetailsave.setOnClickListener {
-            if (!checkAllInputValid()) return@setOnClickListener
+            if (!checkAllEssentialInputValid()) return@setOnClickListener
 
             account.apply {
                 name = binding.textinputAccountName.text.toString()
-                key = binding.textinputAccountKey.text.toString()
+                key_path = binding.textinputAccountKey.text.toString()
                 key_passphrase = binding.textinputAccountKeypass.text.toString()
                 host = binding.textinputAccountAddress.text.toString()
                 port = binding.textinputAccountPort.text.toString().toInt()
@@ -181,7 +193,7 @@ class AccountDetailFragment : Fragment() {
         }
     }
 
-    private fun checkAllInputValid(): Boolean {
+    private fun checkAllEssentialInputValid(): Boolean {
         var result = true
         binding.apply {
             if (textinputAccountName.text.toString().isBlank()) {
@@ -204,7 +216,7 @@ class AccountDetailFragment : Fragment() {
         super.onDestroyView()
         binding.apply {
             account.name = textinputAccountName.text.toString()
-            account.key = textinputAccountKey.text.toString()
+            account.key_path = textinputAccountKey.text.toString()
             account.key_passphrase = textinputAccountKeypass.text.toString()
             account.host = textinputAccountAddress.text.toString()
             account.port = textinputAccountPort.text.toString().toInt()
@@ -233,7 +245,7 @@ class AccountDetailFragment : Fragment() {
             viewModel.updateAccount(
                 account.copy(
                     name = textinputAccountName.text.toString(),
-                    key = textinputAccountKey.text.toString(),
+                    key_path = textinputAccountKey.text.toString(),
                     key_passphrase = textinputAccountKeypass.text.toString(),
                     host = textinputAccountAddress.text.toString(),
                     port = textinputAccountPort.text.toString().toInt(),
