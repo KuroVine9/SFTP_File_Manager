@@ -24,7 +24,6 @@ class FileListAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FileListViewHolder {
         val adapterLayout = LayoutInflater.from(parent.context)
             .inflate(R.layout.file_list, parent, false)
-
         return FileListViewHolder(adapterLayout)
     }
 
