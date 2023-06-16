@@ -19,9 +19,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.kuro9.sftpfilemanager.AccountListAdapter
 import com.kuro9.sftpfilemanager.GridSpacingDecorator
 import com.kuro9.sftpfilemanager.R
+import com.kuro9.sftpfilemanager.adapter.AccountListAdapter
 import com.kuro9.sftpfilemanager.application.AccountApplication
 import com.kuro9.sftpfilemanager.data.AccountWithPrvKey
 import com.kuro9.sftpfilemanager.databinding.FragmentAccountListBinding

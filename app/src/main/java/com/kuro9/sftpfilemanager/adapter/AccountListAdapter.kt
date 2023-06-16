@@ -1,4 +1,4 @@
-package com.kuro9.sftpfilemanager
+package com.kuro9.sftpfilemanager.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
