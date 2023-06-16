@@ -50,6 +50,8 @@ class AccountListAdapter(
 
             override fun areContentsTheSame(oldItem: Account, newItem: Account): Boolean =
                 (oldItem.name == newItem.name)
+                        && (oldItem.host == newItem.host)
+                        && (oldItem.port == newItem.port)
         }
     }
 }

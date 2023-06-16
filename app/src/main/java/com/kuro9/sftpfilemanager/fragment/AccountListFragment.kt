@@ -92,6 +92,10 @@ class AccountListFragment : Fragment() {
                         JschImpl.setIdentify(AccountWithPrvKey(it, key_text))
                     }
 
+                    val homePath = withContext(Dispatchers.IO) {
+                        JschImpl.command("echo \$HOME")?.trimEnd()
+                    }
+
                     Log.d("Jsch", "$result")
                     Handler(Looper.getMainLooper()).post {
                         if (!result) {
@@ -105,11 +109,11 @@ class AccountListFragment : Fragment() {
                             Log.d("nav", "alert")
                             MaterialAlertDialogBuilder(requireContext())
                                 .setTitle("로그인 성공")
-                                .setPositiveButton("확인") { _, _ ->
+                                .setPositiveButton("계속") { _, _ ->
                                     Log.d("nav", "navigation to filelist")
                                     val action =
                                         AccountListFragmentDirections.actionAccountListFragmentToFileListFragment(
-                                            path = "/home/kurovine9/Documents"
+                                            homePath
                                         )
                                     findNavController().navigate(action)
                                 }

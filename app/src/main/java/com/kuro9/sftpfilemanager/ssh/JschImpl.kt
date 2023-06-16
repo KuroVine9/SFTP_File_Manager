@@ -1,7 +1,13 @@
 package com.kuro9.sftpfilemanager.ssh
 
 import android.util.Log
-import com.jcraft.jsch.*
+import com.jcraft.jsch.ChannelExec
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
+import com.jcraft.jsch.Session
+import com.jcraft.jsch.SftpException
+import com.jcraft.jsch.SftpProgressMonitor
 import com.kuro9.sftpfilemanager.data.AccountWithPrvKey
 import com.kuro9.sftpfilemanager.data.FileDetail
 import java.io.ByteArrayOutputStream
@@ -87,8 +93,8 @@ object JschImpl {
         return response
     }
 
-    fun fileListToDataClassList(command: String): List<FileDetail> {
-        val commandResult = this@JschImpl.command(command)
+    fun getFileList(path: String): List<FileDetail> {
+        val commandResult = this@JschImpl.command("ls -al $path")
         Log.d("Jsch", "result = $commandResult")
         if (commandResult === null || commandResult == "") return mutableListOf()
         val lines = commandResult.split("\n")
@@ -97,14 +103,13 @@ object JschImpl {
         Log.d("Jsch", "fileLines = $fileLines")
 
         val result = fileLines.map {
-            var details = it.split("[\\s|\t]+".toRegex())
-            details = if (details[0] == "") details.slice(1 until details.size) else details
+            val details = it.split("[\\s|\t]+".toRegex())
             Log.d("Jsch", "detail = $details")
             FileDetail(
-                isDirectory = details[1][0] == 'd',
-                fileName = details[9],
-                date = "${details[6]} ${details[7]} ${details[8]}",
-                author = details[3]
+                isDirectory = details[0][0] == 'd',
+                fileName = details.slice(8 until details.size).joinToString(separator = " "),
+                date = "${details[5]} ${details[6]} ${details[7]}",
+                author = details[2]
             )
         }
 
