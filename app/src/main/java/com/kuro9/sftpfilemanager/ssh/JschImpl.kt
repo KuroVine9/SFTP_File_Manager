@@ -92,15 +92,19 @@ object JschImpl {
         Log.d("Jsch", "result = $commandResult")
         if (commandResult === null || commandResult == "") return mutableListOf()
         val lines = commandResult.split("\n")
-        val fileLines = lines.slice(1..lines.size)
+        Log.d("Jsch", "lines = ${lines.size}")
+        val fileLines = lines.slice(1..lines.size - 2)
+        Log.d("Jsch", "fileLines = $fileLines")
 
         val result = fileLines.map {
-            val details = it.split(" ")
+            var details = it.split("[\\s|\t]+".toRegex())
+            details = if (details[0] == "") details.slice(1 until details.size) else details
+            Log.d("Jsch", "detail = $details")
             FileDetail(
-                isDirectory = details[0][0] == 'd',
-                fileName = details[8],
-                date = "${details[5]} ${details[6]} ${details[7]}",
-                author = details[2]
+                isDirectory = details[1][0] == 'd',
+                fileName = details[9],
+                date = "${details[6]} ${details[7]} ${details[8]}",
+                author = details[3]
             )
         }
 

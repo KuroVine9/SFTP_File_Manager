@@ -109,7 +109,7 @@ class AccountListFragment : Fragment() {
                                     Log.d("nav", "navigation to filelist")
                                     val action =
                                         AccountListFragmentDirections.actionAccountListFragmentToFileListFragment(
-                                            path = "/home/kurovine9"
+                                            path = "/home/kurovine9/Documents"
                                         )
                                     findNavController().navigate(action)
                                 }

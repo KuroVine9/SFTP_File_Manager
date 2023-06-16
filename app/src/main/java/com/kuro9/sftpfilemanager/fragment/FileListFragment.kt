@@ -36,9 +36,9 @@ class FileListFragment : Fragment() {
             Log.d("Jsch", "path = $path")
             lifecycleScope.launch(Dispatchers.IO) {
                 val dataset = if (path === null || path == "")
-                    JschImpl.fileListToDataClassList("/home/kurovine9")
+                    JschImpl.fileListToDataClassList("ls -asl /home/kurovine9")
                 else
-                    JschImpl.fileListToDataClassList("/home/kurovine9")
+                    JschImpl.fileListToDataClassList("ls -asl $path")
 
                 Handler(Looper.getMainLooper()).post {
                     Log.d("Jsch", "adapter set")
