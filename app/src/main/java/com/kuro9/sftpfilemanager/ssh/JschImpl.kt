@@ -1,14 +1,9 @@
 package com.kuro9.sftpfilemanager.ssh
 
 import android.util.Log
-import com.jcraft.jsch.ChannelExec
-import com.jcraft.jsch.ChannelSftp
-import com.jcraft.jsch.JSch
-import com.jcraft.jsch.JSchException
-import com.jcraft.jsch.Session
-import com.jcraft.jsch.SftpException
-import com.jcraft.jsch.SftpProgressMonitor
+import com.jcraft.jsch.*
 import com.kuro9.sftpfilemanager.data.AccountWithPrvKey
+import com.kuro9.sftpfilemanager.data.FileDetail
 import java.io.ByteArrayOutputStream
 
 object JschImpl {
@@ -90,6 +85,27 @@ object JschImpl {
             disconnect()
         }
         return response
+    }
+
+    fun fileListToDataClassList(command: String): List<FileDetail> {
+        val commandResult = this@JschImpl.command(command)
+        Log.d("Jsch", "result = $commandResult")
+        if (commandResult === null || commandResult == "") return mutableListOf()
+        val lines = commandResult.split("\n")
+        val fileLines = lines.slice(1..lines.size)
+
+        val result = fileLines.map {
+            val details = it.split(" ")
+            FileDetail(
+                isDirectory = details[0][0] == 'd',
+                fileName = details[8],
+                date = "${details[5]} ${details[6]} ${details[7]}",
+                author = details[2]
+            )
+        }
+
+        Log.d("Jsch", result.toString())
+        return result
     }
 
     fun moveFile(source_path: String, destination_path: String, mode: MODE): Boolean {

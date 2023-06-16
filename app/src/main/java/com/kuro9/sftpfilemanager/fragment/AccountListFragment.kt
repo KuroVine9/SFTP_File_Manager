@@ -102,10 +102,17 @@ class AccountListFragment : Fragment() {
                                 .setCancelable(true)
                                 .show()
                         } else {
-                            //TODO: 파일 창으로 navigation
+                            Log.d("nav", "alert")
                             MaterialAlertDialogBuilder(requireContext())
                                 .setTitle("로그인 성공")
-                                .setPositiveButton("확인") { _, _ -> }
+                                .setPositiveButton("확인") { _, _ ->
+                                    Log.d("nav", "navigation to filelist")
+                                    val action =
+                                        AccountListFragmentDirections.actionAccountListFragmentToFileListFragment(
+                                            path = "/home/kurovine9"
+                                        )
+                                    findNavController().navigate(action)
+                                }
                                 .setCancelable(true)
                                 .show()
                         }

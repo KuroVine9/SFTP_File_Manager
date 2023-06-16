@@ -17,6 +17,9 @@
             android:name="id"
             android:defaultValue="-1"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_accountListFragment_to_fileListFragment"
+            app:destination="@id/fileListFragment" />
     </fragment>
     <fragment
         android:id="@+id/accountDetailFragment"
@@ -30,5 +33,17 @@
             android:name="id"
             android:defaultValue="-1"
             app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/fileListFragment"
+        android:name="com.kuro9.sftpfilemanager.fragment.FileListFragment"
+        android:label="FileListFragment">
+        <action
+            android:id="@+id/action_fileListFragment_self"
+            app:destination="@id/fileListFragment" />
+        <argument
+            android:name="path"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
 </navigation>
