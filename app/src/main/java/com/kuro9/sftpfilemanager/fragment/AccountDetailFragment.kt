@@ -19,9 +19,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.kuro9.sftpfilemanager.application.AccountApplication
+import com.kuro9.sftpfilemanager.R
 import com.kuro9.sftpfilemanager.data.Account
 import com.kuro9.sftpfilemanager.databinding.FragmentAccountDetailBinding
+import com.kuro9.sftpfilemanager.db.AccountApplication
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModel
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModelFactory
 import java.io.BufferedReader
@@ -131,9 +132,9 @@ class AccountDetailFragment : Fragment() {
             (requireActivity() as AppCompatActivity)
                 .supportActionBar?.setDisplayShowTitleEnabled(true)
             (requireActivity() as AppCompatActivity).supportActionBar?.title =
-                if (it.getInt("id") < 0) "Add Account" else "Edit Account"
+                if (it.getInt("id") < 0) getString(R.string.add_account_frag_title)
+                else getString(R.string.edit_account_frag_title)
         }
-
         return binding.root
     }
 

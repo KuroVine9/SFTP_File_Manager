@@ -22,9 +22,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kuro9.sftpfilemanager.GridSpacingDecorator
 import com.kuro9.sftpfilemanager.R
 import com.kuro9.sftpfilemanager.adapter.AccountListAdapter
-import com.kuro9.sftpfilemanager.application.AccountApplication
 import com.kuro9.sftpfilemanager.data.AccountWithPrvKey
 import com.kuro9.sftpfilemanager.databinding.FragmentAccountListBinding
+import com.kuro9.sftpfilemanager.db.AccountApplication
 import com.kuro9.sftpfilemanager.ssh.JschImpl
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModel
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModelFactory
@@ -76,7 +76,7 @@ class AccountListFragment : Fragment() {
                 )
             },
             onLoginClicked = {
-                Toast.makeText(context, "로그인 시도중...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.attempting_login, Toast.LENGTH_SHORT).show()
                 checkPermission()
                 Log.d("Jsch", "${it.key_path}")
                 var key_text: String? = null
@@ -100,16 +100,16 @@ class AccountListFragment : Fragment() {
                     Handler(Looper.getMainLooper()).post {
                         if (!result) {
                             MaterialAlertDialogBuilder(requireContext())
-                                .setTitle("로그인 실패")
-                                .setMessage("SSH 서버 로그인에 실패하였습니다.")
-                                .setPositiveButton("확인") { _, _ -> }
+                                .setTitle(R.string.login_fail)
+                                .setMessage(R.string.login_fail_msg)
+                                .setPositiveButton(R.string.positive) { _, _ -> }
                                 .setCancelable(true)
                                 .show()
                         } else {
                             Log.d("nav", "alert")
                             MaterialAlertDialogBuilder(requireContext())
-                                .setTitle("로그인 성공")
-                                .setPositiveButton("계속") { _, _ ->
+                                .setTitle(R.string.login_success)
+                                .setPositiveButton(R.string.task_continue) { _, _ ->
                                     Log.d("nav", "navigation to filelist")
                                     val action =
                                         AccountListFragmentDirections.actionAccountListFragmentToFileListFragment(
@@ -125,11 +125,11 @@ class AccountListFragment : Fragment() {
             },
             onDeleteClicked = {
                 MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("!!WARNING!!")
-                    .setMessage("Are you sure to delete this account?")
+                    .setTitle(R.string.warning)
+                    .setMessage(R.string.warning_to_delete_account)
                     .setCancelable(true)
-                    .setNegativeButton("No") { _, _ -> }
-                    .setPositiveButton("Yes") { _, _ ->
+                    .setNegativeButton(R.string.cancel) { _, _ -> }
+                    .setPositiveButton(R.string.positive) { _, _ ->
                         viewModel.deleteAccount(it.id)
                     }.show()
             }

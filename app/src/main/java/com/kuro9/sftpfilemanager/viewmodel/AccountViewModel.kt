@@ -2,7 +2,7 @@ package com.kuro9.sftpfilemanager.viewmodel
 
 import androidx.lifecycle.*
 import com.kuro9.sftpfilemanager.data.Account
-import com.kuro9.sftpfilemanager.data.AccountDAO
+import com.kuro9.sftpfilemanager.db.AccountDAO
 import kotlinx.coroutines.launch
 
 class AccountViewModel(private val accountDAO: AccountDAO) : ViewModel() {

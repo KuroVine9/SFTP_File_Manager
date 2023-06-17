@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">SFTP File Manager</string>
+    <string name="address_and_port" translatable="false">%s:%d</string>
+    <string name="attempting_login">로그인 시도중…</string>
+    <string name="login_success">로그인 성공</string>
+    <string name="login_fail">로그인 실패</string>
+    <string name="login_fail_msg">SSH 서버 로그인에 실패하였습니다.</string>
+    <string name="positive">확인</string>
+    <string name="cancel">취소</string>
+    <string name="task_continue">계속</string>
+    <string name="warning">경고</string>
+    <string name="delete">삭제</string>
+    <string name="warning_to_delete_account">저장된 계정이 삭제됩니다. 계속할까요?</string>
+    <string name="warning_to_delete_file">이 파일을 삭제하시겠습니까?</string>
+    <string name="download_complete">다운로드 완료</string>
+    <string name="download_fail">다운로드 실패</string>
+    <string name="file_load_fail">파일 불러오기 실패</string>
+    <string name="file_upload_success">업로드 성공</string>
+    <string name="file_upload_fail">업로드 실패</string>
+    <string name="delete_success">삭제 성공</string>
+    <string name="delete_fail">삭제 실패</string>
+    <string name="server_connection_fail">서버 통신 실패</string>
+    <string name="server_connection_fail_msg">SSH 서버와의 통신이 실패했습니다. 홈으로 돌아갑니다.</string>
+    <string name="no_data_to_display">"표시할 내용이 없습니다."</string>
+    <string name="add_account_frag_title">계정 추가</string>
+    <string name="edit_account_frag_title">계정 편집</string>
+    <string name="list_account_frag_title">계정 리스트</string>
+    <string name="save">저장</string>
+    <string name="general">일반</string>
+    <string name="name">사용자 이름</string>
+    <string name="ip_address">IP 주소</string>
+    <string name="port">포트</string>
+    <string name="password">비밀번호</string>
+    <string name="key_setting">개인키 설정</string>
+    <string name="key">키 경로</string>
+    <string name="key_passphrase">키 비밀문구</string>
+    <string name="upload">업로드</string>
+    <string name="add_account">계정 추가</string>
+</resources>

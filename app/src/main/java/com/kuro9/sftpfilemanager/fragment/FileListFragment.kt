@@ -28,6 +28,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.kuro9.sftpfilemanager.R
 import com.kuro9.sftpfilemanager.adapter.FileListAdapter
 import com.kuro9.sftpfilemanager.data.FileDetail
 import com.kuro9.sftpfilemanager.databinding.FragmentFileListBinding
@@ -67,7 +68,7 @@ class FileListFragment : Fragment() {
                                 fileStream.close()
                                 Toast.makeText(
                                     requireContext(),
-                                    "다운로드 완료",
+                                    R.string.download_complete,
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
@@ -103,7 +104,7 @@ class FileListFragment : Fragment() {
                     if (fileToUpload === null) {
                         Toast.makeText(
                             requireContext(),
-                            "파일 불러오기 실패",
+                            R.string.file_load_fail,
                             Toast.LENGTH_SHORT
                         ).show()
                         return@registerForActivityResult
@@ -119,7 +120,8 @@ class FileListFragment : Fragment() {
                         Handler(Looper.getMainLooper()).post {
                             Toast.makeText(
                                 requireContext(),
-                                if (result) "업로드 성공" else "업로드 실패",
+                                if (result) R.string.file_upload_success
+                                else R.string.file_load_fail,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -162,10 +164,97 @@ class FileListFragment : Fragment() {
         return binding.root
     }
 
-    fun createPage() {
+
+    private fun goInsideDir(file: FileDetail, path: String) {
+        val newPath = path + "/" + file.fileName
+        val action =
+            FileListFragmentDirections.actionFileListFragmentSelf(
+                newPath
+            )
+        findNavController().navigate(action)
+    }
+
+    private fun fileDownload(file: FileDetail, path: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            checkPermission()
+            val result: Boolean = withContext(Dispatchers.IO) {
+                JschImpl.moveFile(
+                    path + "/" + file.fileName,
+                    requireContext().filesDir.path + "/" + file.fileName,
+                    JschImpl.MODE.DOWNLOAD
+                )
+            }
+            Handler(Looper.getMainLooper()).post {
+                if (result) {
+                    downloadedFile =
+                        File(requireContext().filesDir, file.fileName)
+
+                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    intent.addCategory(Intent.CATEGORY_OPENABLE)
+                    intent.type = "*/*"
+                    intent.putExtra(Intent.EXTRA_TITLE, file.fileName)
+                    downloadLauncher.launch(intent)
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.download_fail,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun fileUpload(file: FileDetail, path: String): Boolean {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(file.fileName)
+            .setMessage(R.string.warning_to_delete_file)
+            .setPositiveButton(R.string.delete) { _, _ ->
+                val filePathToDelete = "$path/'${file.fileName}'"
+                val fileIndex = dataset!!.indexOf(file)
+                Log.d("fileindex", "$fileIndex")
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val commandResult =
+                        JschImpl.command("rm $filePathToDelete && echo 0 || echo -1")
+
+                    val isSuccess =
+                        (commandResult !== null) && (commandResult[0] == '0')
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(
+                            requireContext(),
+                            if (isSuccess) getString(R.string.delete_success)
+                            else "${getString(R.string.delete_fail)}: ${
+                                commandResult?.split('\n')
+                                    ?.get(0) ?: "Unknown Error"
+                            }",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    dataset!!.clear()
+                    val newDataSet = JschImpl.getFileList(path)
+                    Handler(Looper.getMainLooper()).post {
+                        if (newDataSet === null) {
+                            connectErrorAlert()
+                        } else {
+                            dataset!!.addAll(newDataSet)
+                            if (newDataSet.isEmpty()) noDataToast()
+                            binding.fileRecyclerView.adapter!!.notifyDataSetChanged()
+                        }
+                    }
+
+                }
+            }
+            .setNegativeButton(R.string.cancel) { _, _ -> }
+            .setCancelable(true)
+            .show()
+
+        return true
+    }
+
+    private fun createPage() {
         Log.d("createpage", "called")
-        requireArguments().let {
-            val path = it.getString("path", "~")
+        requireArguments().let { bundle ->
+            val path = bundle.getString("path", "~")
             Log.d("Jsch", "path = $path")
             lifecycleScope.launch(Dispatchers.IO) {
                 dataset = JschImpl.getFileList(path)
@@ -180,89 +269,9 @@ class FileListFragment : Fragment() {
                             FileListAdapter(
                                 context = requireContext(),
                                 dataset = dataset!!,
-                                onDirClick = { file ->
-                                    val newPath = path + "/" + file.fileName
-                                    val action =
-                                        FileListFragmentDirections.actionFileListFragmentSelf(
-                                            newPath
-                                        )
-                                    findNavController().navigate(action)
-                                },
-                                onFileClick = { file ->
-                                    lifecycleScope.launch(Dispatchers.IO) {
-                                        checkPermission()
-                                        val result: Boolean = withContext(Dispatchers.IO) {
-                                            JschImpl.moveFile(
-                                                path + "/" + file.fileName,
-                                                requireContext().filesDir.path + "/" + file.fileName,
-                                                JschImpl.MODE.DOWNLOAD
-                                            )
-                                        }
-                                        Handler(Looper.getMainLooper()).post {
-                                            if (result) {
-                                                downloadedFile =
-                                                    File(requireContext().filesDir, file.fileName)
-
-                                                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-                                                intent.addCategory(Intent.CATEGORY_OPENABLE)
-                                                intent.type = "*/*"
-                                                intent.putExtra(Intent.EXTRA_TITLE, file.fileName)
-                                                downloadLauncher.launch(intent)
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "다운로드 에러",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
-                                    }
-
-                                },
-                                onFileLongClick = { file ->
-                                    MaterialAlertDialogBuilder(requireContext())
-                                        .setTitle(file.fileName)
-                                        .setMessage("이 파일을 삭제하시겠습니까?")
-                                        .setPositiveButton("삭제") { _, _ ->
-                                            val filePathToDelete = "$path/'${file.fileName}'"
-                                            val fileIndex = dataset!!.indexOf(file)
-                                            Log.d("fileindex", "$fileIndex")
-                                            lifecycleScope.launch(Dispatchers.IO) {
-                                                val commandResult =
-                                                    JschImpl.command("rm $filePathToDelete && echo 0 || echo -1")
-
-                                                val isSuccess =
-                                                    (commandResult !== null) && (commandResult[0] == '0')
-                                                Handler(Looper.getMainLooper()).post {
-                                                    Toast.makeText(
-                                                        requireContext(),
-                                                        if (isSuccess) "삭제 성공" else "삭제 실패: ${
-                                                            commandResult?.split('\n')
-                                                                ?.get(0) ?: "Unknown Error"
-                                                        }",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                                dataset!!.clear()
-                                                val newDataSet = JschImpl.getFileList(path)
-                                                Handler(Looper.getMainLooper()).post {
-                                                    if (newDataSet === null) {
-                                                        connectErrorAlert()
-                                                    } else {
-                                                        dataset!!.addAll(newDataSet)
-                                                        if (newDataSet.isEmpty()) noDataToast()
-                                                        binding.fileRecyclerView.adapter!!.notifyDataSetChanged()
-                                                    }
-                                                }
-
-                                            }
-                                        }
-                                        .setNegativeButton("취소") { _, _ -> }
-                                        .setCancelable(true)
-                                        .show()
-
-                                    true
-                                }
+                                onDirClick = { goInsideDir(it, path) },
+                                onFileClick = { fileDownload(it, path) },
+                                onFileLongClick = { fileUpload(it, path) }
                             )
                     }
                 }
@@ -319,9 +328,9 @@ class FileListFragment : Fragment() {
     private fun connectErrorAlert() {
         Handler(Looper.getMainLooper()).post {
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle("서버 통신 실패")
-                .setMessage("SSH 서버와의 통신이 실패했습니다. 홈으로 돌아갑니다. ")
-                .setPositiveButton("확인") { _, _ ->
+                .setTitle(R.string.server_connection_fail)
+                .setMessage(R.string.server_connection_fail_msg)
+                .setPositiveButton(R.string.positive) { _, _ ->
                     val action =
                         FileListFragmentDirections.actionFileListFragmentToAccountListFragment()
                     findNavController().navigate(action)
@@ -335,7 +344,7 @@ class FileListFragment : Fragment() {
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(
                 requireContext(),
-                "표시할 내용이 없습니다.",
+                R.string.no_data_to_display,
                 Toast.LENGTH_SHORT
             ).show()
         }
