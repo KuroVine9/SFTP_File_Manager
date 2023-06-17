@@ -29,6 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kuro9.sftpfilemanager.adapter.FileListAdapter
+import com.kuro9.sftpfilemanager.data.FileDetail
 import com.kuro9.sftpfilemanager.databinding.FragmentFileListBinding
 import com.kuro9.sftpfilemanager.ssh.JschImpl
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +42,7 @@ import java.io.FileOutputStream
 class FileListFragment : Fragment() {
     private var _binding: FragmentFileListBinding? = null
     private val binding get() = _binding!!
+    private var dataset: MutableList<FileDetail>? = null
     private lateinit var downloadedFile: File
     private var fileToUpload: File? = null
     private lateinit var downloadLauncher: ActivityResultLauncher<Intent>
@@ -160,36 +162,24 @@ class FileListFragment : Fragment() {
         return binding.root
     }
 
-    private fun createPage() {
+    fun createPage() {
+        Log.d("createpage", "called")
         requireArguments().let {
             val path = it.getString("path", "~")
             Log.d("Jsch", "path = $path")
             lifecycleScope.launch(Dispatchers.IO) {
-                val dataset = JschImpl.getFileList(path)
+                dataset = JschImpl.getFileList(path)
 
-                Handler(Looper.getMainLooper()).post {
-                    if (dataset === null) {
-                        MaterialAlertDialogBuilder(requireContext())
-                            .setTitle("서버 통신 실패")
-                            .setMessage("SSH 서버와의 통신이 실패했습니다. 홈으로 돌아갑니다. ")
-                            .setPositiveButton("확인") { _, _ ->
-                                val action =
-                                    FileListFragmentDirections.actionFileListFragmentToAccountListFragment()
-                                findNavController().navigate(action)
-                            }
-                            .setCancelable(false)
-                            .show()
-                    } else if (dataset.isEmpty()) {
-                        Toast.makeText(
-                            requireContext(),
-                            "표시할 내용이 없습니다.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
+                if (dataset === null) {
+                    connectErrorAlert()
+                } else if (dataset!!.isEmpty()) {
+                    noDataToast()
+                } else {
+                    Handler(Looper.getMainLooper()).post {
                         binding.fileRecyclerView.adapter =
                             FileListAdapter(
-                                requireContext(),
-                                dataset,
+                                context = requireContext(),
+                                dataset = dataset!!,
                                 onDirClick = { file ->
                                     val newPath = path + "/" + file.fileName
                                     val action =
@@ -228,6 +218,50 @@ class FileListFragment : Fragment() {
                                         }
                                     }
 
+                                },
+                                onFileLongClick = { file ->
+                                    MaterialAlertDialogBuilder(requireContext())
+                                        .setTitle(file.fileName)
+                                        .setMessage("이 파일을 삭제하시겠습니까?")
+                                        .setPositiveButton("삭제") { _, _ ->
+                                            val filePathToDelete = "$path/'${file.fileName}'"
+                                            val fileIndex = dataset!!.indexOf(file)
+                                            Log.d("fileindex", "$fileIndex")
+                                            lifecycleScope.launch(Dispatchers.IO) {
+                                                val commandResult =
+                                                    JschImpl.command("rm $filePathToDelete && echo 0 || echo -1")
+
+                                                val isSuccess =
+                                                    (commandResult !== null) && (commandResult[0] == '0')
+                                                Handler(Looper.getMainLooper()).post {
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        if (isSuccess) "삭제 성공" else "삭제 실패: ${
+                                                            commandResult?.split('\n')
+                                                                ?.get(0) ?: "Unknown Error"
+                                                        }",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                                dataset!!.clear()
+                                                val newDataSet = JschImpl.getFileList(path)
+                                                Handler(Looper.getMainLooper()).post {
+                                                    if (newDataSet === null) {
+                                                        connectErrorAlert()
+                                                    } else {
+                                                        dataset!!.addAll(newDataSet)
+                                                        if (newDataSet.isEmpty()) noDataToast()
+                                                        binding.fileRecyclerView.adapter!!.notifyDataSetChanged()
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                        .setNegativeButton("취소") { _, _ -> }
+                                        .setCancelable(true)
+                                        .show()
+
+                                    true
                                 }
                             )
                     }
@@ -235,6 +269,7 @@ class FileListFragment : Fragment() {
             }
         }
     }
+
 
     private fun checkPermission() {
         val writePerm = ContextCompat.checkSelfPermission(
@@ -279,6 +314,31 @@ class FileListFragment : Fragment() {
             }
         }
         return result
+    }
+
+    private fun connectErrorAlert() {
+        Handler(Looper.getMainLooper()).post {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("서버 통신 실패")
+                .setMessage("SSH 서버와의 통신이 실패했습니다. 홈으로 돌아갑니다. ")
+                .setPositiveButton("확인") { _, _ ->
+                    val action =
+                        FileListFragmentDirections.actionFileListFragmentToAccountListFragment()
+                    findNavController().navigate(action)
+                }
+                .setCancelable(false)
+                .show()
+        }
+    }
+
+    private fun noDataToast() {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(
+                requireContext(),
+                "표시할 내용이 없습니다.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     override fun onDestroy() {

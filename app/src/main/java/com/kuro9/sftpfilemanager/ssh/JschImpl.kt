@@ -93,11 +93,11 @@ object JschImpl {
         return response
     }
 
-    fun getFileList(path: String): List<FileDetail>? {
+    fun getFileList(path: String): MutableList<FileDetail>? {
         val commandResult = this@JschImpl.command("ls -al $path")
         Log.d("Jsch", "result = $commandResult")
         if (commandResult === null || commandResult == "") return null
-        val lines = commandResult.split("\n")
+        val lines = commandResult.split('\n')
         Log.d("Jsch", "lines = ${lines.size}")
         val fileLines = lines.slice(3..lines.size - 2)
         Log.d("Jsch", "fileLines = $fileLines")
@@ -114,7 +114,7 @@ object JschImpl {
         }
 
         Log.d("Jsch", result.toString())
-        return result
+        return result.toMutableList()
     }
 
     fun moveFile(source_path: String, destination_path: String, mode: MODE): Boolean {

@@ -12,9 +12,10 @@ import com.kuro9.sftpfilemanager.data.FileDetail
 
 class FileListAdapter(
     private val context: Context,
-    private val dataset: List<FileDetail>,
+    private val dataset: MutableList<FileDetail>,
     private val onDirClick: (FileDetail) -> Unit,
-    private val onFileClick: (FileDetail) -> Unit
+    private val onFileClick: (FileDetail) -> Unit,
+    private val onFileLongClick: (FileDetail) -> Boolean
 ) : RecyclerView.Adapter<FileListAdapter.FileListViewHolder>() {
     class FileListViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         val fileImage: ImageView = view.findViewById(R.id.file_image)
@@ -40,8 +41,13 @@ class FileListAdapter(
         holder.itemView.apply {
             if (item.isDirectory)
                 setOnClickListener { onDirClick(item) }
-            else
+            else {
                 setOnClickListener { onFileClick(item) }
+                setOnLongClickListener {
+                    onFileLongClick(item)
+                }
+
+            }
         }
 
         //TODO: fileImage FileDetail#isDirectory에 따라 바꾸기
