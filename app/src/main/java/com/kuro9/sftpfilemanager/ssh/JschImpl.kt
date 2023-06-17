@@ -21,12 +21,22 @@ object JschImpl {
 
     enum class MODE { UPLOAD, DOWNLOAD }
 
+    /**
+     * 계정이 valid한지 확인
+     * @param identity 계정
+     * @return valid 여부
+     */
     private fun testConnection(identity: AccountWithPrvKey): Boolean {
         val result = connect(identity)
         disconnect()
         return result
     }
 
+    /**
+     * 클래스에 계정정보 저장
+     * @param identity 계정
+     * @return 계정이 valid한지 여부
+     */
     fun setIdentify(identity: AccountWithPrvKey): Boolean {
         if (testConnection(identity)) {
             _account = identity
@@ -35,8 +45,11 @@ object JschImpl {
         return false
     }
 
-    fun isCacheAccountExist(): Boolean = _account !== null
-
+    /**
+     * 서버에 접속 시도
+     * @param identity 계정
+     * @return 계정이 valid한지 여부
+     */
     private fun connect(identity: AccountWithPrvKey): Boolean {
         try {
             identity.apply {
@@ -64,6 +77,11 @@ object JschImpl {
         return true
     }
 
+    /**
+     * 명령어 실행. 반드시 [setIdentify]가 선행되어야 함
+     * @param command 명령어
+     * @return 출력 값
+     */
     fun command(command: String): String? {
         if (_session === null && _account?.let { connect(it) } != true) {
             Log.e("JschImpl", "No Available Session Connections")
@@ -93,6 +111,11 @@ object JschImpl {
         return response
     }
 
+    /**
+     * [command]를 이용해 경로의 파일을 리스트로 반환
+     * @param path 경로
+     * @return .와 ..를 제외한 파일의 정보 리스트(에러 시 null)
+     */
     fun getFileList(path: String): MutableList<FileDetail>? {
         val commandResult = this@JschImpl.command("ls -al $path")
         Log.d("Jsch", "result = $commandResult")
@@ -117,6 +140,13 @@ object JschImpl {
         return result.toMutableList()
     }
 
+    /**
+     * 파일 업로드/다운로드
+     * @param source_path 다운로드할 파일의 경로/업로드할 파일의 경로
+     * @param destination_path 다운로드될 위치/업로드될 위치
+     * @param mode 업로드/다운로드 설정
+     * @return 성공 여부
+     */
     fun moveFile(source_path: String, destination_path: String, mode: MODE): Boolean {
         _percent = 0 //초기화
         if (_session === null && (_account?.let { connect(it) } == false)) {
@@ -145,6 +175,9 @@ object JschImpl {
         return true
     }
 
+    /**
+     * 접속 종료
+     */
     private fun disconnect() {
         _session?.disconnect()
         _session = null

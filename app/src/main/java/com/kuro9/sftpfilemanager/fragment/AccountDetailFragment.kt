@@ -25,9 +25,6 @@ import com.kuro9.sftpfilemanager.databinding.FragmentAccountDetailBinding
 import com.kuro9.sftpfilemanager.db.AccountApplication
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModel
 import com.kuro9.sftpfilemanager.viewmodel.AccountViewModelFactory
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
 
 
 class AccountDetailFragment : Fragment() {
@@ -57,24 +54,8 @@ class AccountDetailFragment : Fragment() {
         intent_return = null
     }
 
-    @Throws(IOException::class)
-    private fun readTextFromUri(uri: Uri?): String {
-        if (uri === null) return ""
-
-        val stringBuilder = StringBuilder()
-        requireActivity().contentResolver.openInputStream(uri)?.use { inputStream ->
-            BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                var line: String? = reader.readLine()
-                while (line != null) {
-                    stringBuilder.append("$line\n")
-                    line = reader.readLine()
-                }
-            }
-        }
-        return stringBuilder.toString()
-    }
-
     private fun openActivityResultLauncher(): ActivityResultLauncher<Intent> {
+        /*선택한 파일 경로 가져오기*/
         val resultLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
                 if (result.resultCode == Activity.RESULT_OK) {
@@ -119,6 +100,7 @@ class AccountDetailFragment : Fragment() {
         _binding = FragmentAccountDetailBinding.inflate(inflater, container, false)
         val activityLauncher = openActivityResultLauncher()
 
+        // 파일 선택 인텐트
         binding.addKey.setOnClickListener {
             checkPermission(it)
             val intent: Intent = Intent(ACTION_OPEN_DOCUMENT)
@@ -128,6 +110,7 @@ class AccountDetailFragment : Fragment() {
             activityLauncher.launch(intent)
         }
 
+        // 상단바 제목 현재 모드에 따라 변경
         arguments?.let {
             (requireActivity() as AppCompatActivity)
                 .supportActionBar?.setDisplayShowTitleEnabled(true)
@@ -153,6 +136,7 @@ class AccountDetailFragment : Fragment() {
             }
             bindText()
         } else {
+            // 현재 수정/입력인지 판단
             arguments?.let {
                 val id = it.getInt("id")
                 if (id < 0) {
@@ -167,6 +151,7 @@ class AccountDetailFragment : Fragment() {
                         password = ""
                     )
                 } else {
+                    // edit모드
                     mode = OPMODE.EDIT
                     viewModel.getAccount(id).observe(this.viewLifecycleOwner) { acc ->
                         account = acc
@@ -175,7 +160,10 @@ class AccountDetailFragment : Fragment() {
                 }
             }
         }
+
+        // 저장버튼
         binding.floatingActionButtonDetailsave.setOnClickListener {
+            // 필수항목 중 비어있는 칸 체크
             if (!checkAllEssentialInputValid()) return@setOnClickListener
 
             account.apply {
@@ -194,6 +182,7 @@ class AccountDetailFragment : Fragment() {
         }
     }
 
+    // 비어있는 칸 체크
     private fun checkAllEssentialInputValid(): Boolean {
         var result = true
         binding.apply {
@@ -215,6 +204,7 @@ class AccountDetailFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // 임시 저장
         binding.apply {
             account.name = textinputAccountName.text.toString()
             account.key_path = textinputAccountKey.text.toString()

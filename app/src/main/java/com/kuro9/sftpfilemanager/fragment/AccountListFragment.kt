@@ -22,6 +22,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kuro9.sftpfilemanager.GridSpacingDecorator
 import com.kuro9.sftpfilemanager.R
 import com.kuro9.sftpfilemanager.adapter.AccountListAdapter
+import com.kuro9.sftpfilemanager.data.Account
 import com.kuro9.sftpfilemanager.data.AccountWithPrvKey
 import com.kuro9.sftpfilemanager.databinding.FragmentAccountListBinding
 import com.kuro9.sftpfilemanager.db.AccountApplication
@@ -60,6 +61,7 @@ class AccountListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 현재기기 폭 구해 그리드/리니어 레이아웃 사용 결정
         val width = with(resources.displayMetrics) { widthPixels / xdpi }
         Log.d("dpi", "$width")
         layout =
@@ -75,54 +77,7 @@ class AccountListFragment : Fragment() {
                     )
                 )
             },
-            onLoginClicked = {
-                Toast.makeText(context, R.string.attempting_login, Toast.LENGTH_SHORT).show()
-                checkPermission()
-                Log.d("Jsch", "${it.key_path}")
-                var key_text: String? = null
-                try {
-                    key_text = readTextFromUri(Uri.parse(it.key_path))
-                } catch (_: IOException) {
-
-                } catch (_: FileNotFoundException) {
-
-                }
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val result: Boolean = withContext(Dispatchers.IO) {
-                        JschImpl.setIdentify(AccountWithPrvKey(it, key_text))
-                    }
-
-                    val homePath = withContext(Dispatchers.IO) {
-                        JschImpl.command("echo \$HOME")?.trimEnd()
-                    }
-
-                    Log.d("Jsch", "$result")
-                    Handler(Looper.getMainLooper()).post {
-                        if (!result) {
-                            MaterialAlertDialogBuilder(requireContext())
-                                .setTitle(R.string.login_fail)
-                                .setMessage(R.string.login_fail_msg)
-                                .setPositiveButton(R.string.positive) { _, _ -> }
-                                .setCancelable(true)
-                                .show()
-                        } else {
-                            Log.d("nav", "alert")
-                            MaterialAlertDialogBuilder(requireContext())
-                                .setTitle(R.string.login_success)
-                                .setPositiveButton(R.string.task_continue) { _, _ ->
-                                    Log.d("nav", "navigation to filelist")
-                                    val action =
-                                        AccountListFragmentDirections.actionAccountListFragmentToFileListFragment(
-                                            homePath
-                                        )
-                                    findNavController().navigate(action)
-                                }
-                                .setCancelable(true)
-                                .show()
-                        }
-                    }
-                }
-            },
+            onLoginClicked = ::attemptLogin,
             onDeleteClicked = {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.warning)
@@ -134,6 +89,8 @@ class AccountListFragment : Fragment() {
                     }.show()
             }
         )
+
+        // 레이아웃 매니저 설정
         binding.accountListRecyclerView.apply {
             if (layout == Layout.Grid) {
                 val gridLayoutManager = GridLayoutManager(context, 2)
@@ -166,6 +123,61 @@ class AccountListFragment : Fragment() {
         _binding = null
     }
 
+    /**
+     * 로그인 시도
+     * @param account 로그인에 사용되는 계정
+     */
+    private fun attemptLogin(account: Account) {
+        Toast.makeText(context, R.string.attempting_login, Toast.LENGTH_SHORT).show()
+        checkPermission()
+        Log.d("Jsch", "${account.key_path}")
+        var key_text: String? = null
+        try {
+            key_text = readTextFromUri(Uri.parse(account.key_path))
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            // 로그인 성공여부 저장
+            val result: Boolean = withContext(Dispatchers.IO) {
+                JschImpl.setIdentify(AccountWithPrvKey(account, key_text))
+            }
+
+            // 사용자의 home 디렉토리 정의
+            val homePath = withContext(Dispatchers.IO) {
+                JschImpl.command("echo \$HOME")?.trimEnd()
+            }
+
+            Log.d("Jsch", "$result")
+            Handler(Looper.getMainLooper()).post {
+                if (!result) {
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.login_fail)
+                        .setMessage(R.string.login_fail_msg)
+                        .setPositiveButton(R.string.positive) { _, _ -> }
+                        .setCancelable(true)
+                        .show()
+                } else {
+                    Log.d("nav", "alert")
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.login_success)
+                        .setPositiveButton(R.string.task_continue) { _, _ ->
+                            Log.d("nav", "navigation to filelist")
+                            val action =
+                                AccountListFragmentDirections.actionAccountListFragmentToFileListFragment(
+                                    homePath
+                                )
+                            findNavController().navigate(action)
+                        }
+                        .setCancelable(true)
+                        .show()
+                }
+            }
+        }
+    }
+
     private fun checkPermission() {
         val storagePermission = ContextCompat.checkSelfPermission(
             requireContext(),
@@ -181,6 +193,7 @@ class AccountListFragment : Fragment() {
             )
     }
 
+    // 공유 저장소에 있는 키 파일 읽기
     @Throws(IOException::class, FileNotFoundException::class)
     private fun readTextFromUri(uri: Uri?): String {
         if (uri === null) return ""

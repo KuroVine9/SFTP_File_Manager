@@ -4,6 +4,11 @@ import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
+/**
+ * 그리드 카드 간 여백 주기 위한 클래스
+ * @param space 간격
+ * @param spanCount 카드의 열 수
+ */
 class GridSpacingDecorator(private val space: Int, private val spanCount: Int) :
     RecyclerView.ItemDecoration() {
 

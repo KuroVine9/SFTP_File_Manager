@@ -55,6 +55,7 @@ class FileListFragment : Fragment() {
         val builder = VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
 
+        // 파일 저장할 경로 선택 후 다운로드
         downloadLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
                 if (result.resultCode == Activity.RESULT_OK) {
@@ -81,6 +82,7 @@ class FileListFragment : Fragment() {
                 }
             }
 
+        // 업로드할 파일 공유 저장소에서 선택 후 업로드
         uploadLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
                 if (result.resultCode == Activity.RESULT_OK) {
@@ -89,7 +91,7 @@ class FileListFragment : Fragment() {
                             File(requireContext().filesDir, getFileName(it) ?: "NewFileName")
                         requireActivity().contentResolver.openInputStream(it)?.use { inputStream ->
                             val fileOutputStream = FileOutputStream(fileToUpload)
-                            var n = 0
+                            var n: Int
                             fileOutputStream.use { outputStream ->
                                 val buffer = ByteArray(1024)
                                 do {
@@ -151,8 +153,10 @@ class FileListFragment : Fragment() {
                 it.getString("path") ?: "~"
         }
 
+        // 프래그먼트 내용 생성 및 바인딩
         createPage()
 
+        // 업로드 파일 선택 인텐트 바인딩
         binding.uploadFloatingButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.addCategory(Intent.CATEGORY_OPENABLE)
@@ -165,6 +169,11 @@ class FileListFragment : Fragment() {
     }
 
 
+    /**
+     * 파일 클릭 시 클릭한 파일로 이동(cd)
+     * @param file 클릭한 파일. 디렉토리이어야 함
+     * @param path 현재 경로
+     */
     private fun goInsideDir(file: FileDetail, path: String) {
         val newPath = path + "/" + file.fileName
         val action =
@@ -174,6 +183,11 @@ class FileListFragment : Fragment() {
         findNavController().navigate(action)
     }
 
+    /**
+     * 선택한 파일을 다운로드
+     * @param file 클릭한 파일. 일반 파일이어야 함
+     * @param path 현재 경로
+     */
     private fun fileDownload(file: FileDetail, path: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             checkPermission()
@@ -205,7 +219,14 @@ class FileListFragment : Fragment() {
         }
     }
 
-    private fun fileUpload(file: FileDetail, path: String): Boolean {
+    /**
+     * 선택한 파일을 삭제
+     * @author kurovine9
+     * @param file 클릭한 파일. 일반 파일이어야 함 - 안전을 위해 재귀적 삭제 지원하지 말 것
+     * @param path 현재 경로
+     * @return 성공 여부
+     */
+    private fun fileDelete(file: FileDetail, path: String): Boolean {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(file.fileName)
             .setMessage(R.string.warning_to_delete_file)
@@ -251,6 +272,7 @@ class FileListFragment : Fragment() {
         return true
     }
 
+    // 프래그먼트 내용 생성 및 바인딩
     private fun createPage() {
         Log.d("createpage", "called")
         requireArguments().let { bundle ->
@@ -271,7 +293,7 @@ class FileListFragment : Fragment() {
                                 dataset = dataset!!,
                                 onDirClick = { goInsideDir(it, path) },
                                 onFileClick = { fileDownload(it, path) },
-                                onFileLongClick = { fileUpload(it, path) }
+                                onFileLongClick = { fileDelete(it, path) }
                             )
                     }
                 }
@@ -302,6 +324,11 @@ class FileListFragment : Fragment() {
             )
     }
 
+    /**
+     * Uri를 이용해 파일의 이름 반환
+     * @param uri 파일의 Uri
+     * @return 파일의 이름(파싱 실패 시 null)
+     */
     private fun getFileName(uri: Uri): String? {
         var result: String? = null
         if (uri.scheme == "content") {
