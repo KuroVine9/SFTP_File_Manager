@@ -9,11 +9,13 @@
 
     <ImageView
         android:id="@+id/file_image"
+        style="10"
         android:layout_width="12dp"
         android:layout_height="15dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="32dp"
+        android:contentDescription="@null"
         android:scaleX="5"
         android:scaleY="5"
         app:layout_constraintBottom_toBottomOf="parent"
