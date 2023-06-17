@@ -65,7 +65,7 @@ object JschImpl {
     }
 
     fun command(command: String): String? {
-        if (_session === null && (_account?.let { connect(it) } == false)) {
+        if (_session === null && _account?.let { connect(it) } != true) {
             Log.e("JschImpl", "No Available Session Connections")
             return null
         }

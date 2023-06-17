@@ -36,4 +36,5 @@
     <string name="key_passphrase">Key Passphrase</string>
     <string name="upload">Upload</string>
     <string name="add_account">Add Account</string>
+    <string name="action_sort">Sort</string>
 </resources>
