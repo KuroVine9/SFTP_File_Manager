@@ -1,12 +1,10 @@
 package com.kuro9.sftpfilemanager.fragment
 
-import android.content.ActivityNotFoundException
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.StrictMode
@@ -16,6 +14,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -31,19 +32,44 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
 
 
 class FileListFragment : Fragment() {
     private var _binding: FragmentFileListBinding? = null
     private val binding get() = _binding!!
+    private lateinit var downloadedFile: File
+    private lateinit var resultLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val builder = VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
+
+        resultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    result.data?.also { url ->
+                        Log.d("myintent", url.data.toString())
+                        url.data?.let {
+                            val fileStream = requireActivity().contentResolver.openOutputStream(it)
+                            if (fileStream !== null) {
+                                fileStream.write(downloadedFile.readBytes())
+                                fileStream.flush()
+                                fileStream.close()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "다운로드 완료",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Log.d("myintent", "filestream is NULL")
+                            }
+                        }
+                    }
+                } else {
+                    Log.e("myintent", "intent create not successful")
+                }
+            }
     }
 
     override fun onCreateView(
@@ -59,13 +85,6 @@ class FileListFragment : Fragment() {
             (requireActivity() as AppCompatActivity).supportActionBar?.title =
                 it.getString("path") ?: "~"
         }
-
-        return binding.root
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
         requireArguments().let {
             val path = it.getString("path", "~")
@@ -97,70 +116,14 @@ class FileListFragment : Fragment() {
                                     }
                                     Handler(Looper.getMainLooper()).post {
                                         if (result) {
-                                            val downloaded =
+                                            downloadedFile =
                                                 File(requireContext().filesDir, file.fileName)
-                                            val sharedFile =
-                                                File(
-                                                    Environment.getExternalStoragePublicDirectory(
-                                                        Environment.DIRECTORY_DOCUMENTS
-                                                    ),
-                                                    file.fileName
-                                                )
 
-                                            checkPermission()
-                                            if (sharedFile.exists()) {
-                                                sharedFile.delete()
-                                            }
-                                            try {
-                                                val inputStream = FileInputStream(downloaded)
-                                                val bytes = inputStream.readBytes()
-                                                inputStream.close()
-                                                val outputStream = FileOutputStream(sharedFile)
-                                                outputStream.write(bytes)
-                                                outputStream.close()
-                                            } catch (e: FileNotFoundException) {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "파일 생성 에러",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                            Toast.makeText(
-                                                requireContext(),
-                                                "다운로드 완료",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                            //TODO: 인텐트로 파일 열기-SAF?
-                                            val uri: Uri = Uri.parse(
-                                                "${
-                                                    Environment.getExternalStoragePublicDirectory(
-                                                        Environment.DIRECTORY_DOCUMENTS
-                                                    ).absolutePath
-                                                }/${file.fileName}"
-                                            )
-//                                            val mime = MimeTypeMap.getSingleton()
-//                                                .getMimeTypeFromExtension(
-//                                                    MimeTypeMap.getFileExtensionFromUrl(
-//                                                        Uri.fromFile(
-//                                                            sharedFile
-//                                                        ).path
-//                                                    )
-//                                                )
-                                            val mime = "*/*"
-
-                                            val intent = Intent(Intent.ACTION_VIEW)
-                                            intent.setDataAndType(uri, mime)
-                                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                            try {
-                                                startActivity(intent)
-                                            } catch (e: ActivityNotFoundException) {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "No app can handle this file",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
+                                            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+                                            intent.addCategory(Intent.CATEGORY_OPENABLE)
+                                            intent.type = "*/*"
+                                            intent.putExtra(Intent.EXTRA_TITLE, file.fileName)
+                                            resultLauncher.launch(intent)
                                         } else {
                                             Toast.makeText(
                                                 requireContext(),
@@ -190,7 +153,12 @@ class FileListFragment : Fragment() {
             }
         }
 
+        return binding.root
+    }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
     }
 
     private fun checkPermission() {
@@ -213,6 +181,30 @@ class FileListFragment : Fragment() {
                 ),
                 1
             )
+    }
+
+    private fun openActivityResultLauncher(data: File): ActivityResultLauncher<Intent> {
+        val resultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    result.data?.also { url ->
+                        Log.d("myintent", url.data.toString())
+                        url.data?.let {
+                            val fileStream = requireActivity().contentResolver.openOutputStream(it)
+                            if (fileStream !== null) {
+                                fileStream.write(data.readBytes())
+                                fileStream.flush()
+                                fileStream.close()
+                            } else {
+                                Log.d("myintent", "filestream is NULL")
+                            }
+                        }
+                    }
+                } else {
+                    Log.e("myintent", "intent create not successful")
+                }
+            }
+        return resultLauncher
     }
 
     override fun onDestroy() {
