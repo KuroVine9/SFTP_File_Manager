@@ -1,6 +1,39 @@
 <resources>
-    <string name="app_name">SFTP File Manager</string>
-    <string name="address_and_port">%s:%d</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="app_name" translatable="false">SFTP File Manager</string>
+    <string name="address_and_port" translatable="false">%s:%d</string>
+    <string name="attempting_login">Attempting to Login…</string>
+    <string name="login_success">Login Success</string>
+    <string name="login_fail">Login Fail</string>
+    <string name="login_fail_msg">Failed to login SSH server.</string>
+    <string name="positive">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="task_continue">Continue</string>
+    <string name="warning">WARNING</string>
+    <string name="delete">Delete</string>
+    <string name="warning_to_delete_account">Your account will be delete. Do you want to continue?</string>
+    <string name="warning_to_delete_file">This file will be delete. Do you want to continue?</string>
+    <string name="download_complete">Download complete</string>
+    <string name="download_fail">Download failed</string>
+    <string name="file_load_fail">File load failed</string>
+    <string name="file_upload_success">Upload success</string>
+    <string name="file_upload_fail">Upload failed</string>
+    <string name="delete_success">Delete success</string>
+    <string name="delete_fail">Delete failed</string>
+    <string name="server_connection_fail">Server connect failure</string>
+    <string name="server_connection_fail_msg">Failed to connect SSH server.</string>
+    <string name="no_data_to_display">"No file to display"</string>
+    <string name="add_account_frag_title">Add Account</string>
+    <string name="edit_account_frag_title">Edit Account</string>
+    <string name="list_account_frag_title">Account List</string>
+    <string name="save">Save</string>
+    <string name="general">General</string>
+    <string name="name">Username</string>
+    <string name="ip_address">IP Address</string>
+    <string name="port">Port</string>
+    <string name="password">Password</string>
+    <string name="key_setting">Key</string>
+    <string name="key">Key Path</string>
+    <string name="key_passphrase">Key Passphrase</string>
+    <string name="upload">Upload</string>
+    <string name="add_account">Add Account</string>
 </resources>

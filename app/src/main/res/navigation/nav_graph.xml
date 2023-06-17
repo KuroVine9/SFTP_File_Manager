@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/accountListFragment"
         android:name="com.kuro9.sftpfilemanager.fragment.AccountListFragment"
-        android:label="Account List"
+        android:label="@string/list_account_frag_title"
         tools:layout="@layout/fragment_account_list">
         <action
             android:id="@+id/action_accountListFragment_to_accountDetailFragment"

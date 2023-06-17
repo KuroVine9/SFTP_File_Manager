@@ -1,6 +1,7 @@
-package com.kuro9.sftpfilemanager.data
+package com.kuro9.sftpfilemanager.db
 
 import androidx.room.*
+import com.kuro9.sftpfilemanager.data.Account
 import kotlinx.coroutines.flow.Flow
 
 @Dao

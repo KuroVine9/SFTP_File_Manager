@@ -25,7 +25,7 @@
         android:layout_gravity="end|bottom"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="24dp"
-        android:contentDescription="Add Account"
+        android:contentDescription="@string/add_account"
 
         android:src="@android:drawable/ic_input_add"
         app:tint="@android:color/white" />
