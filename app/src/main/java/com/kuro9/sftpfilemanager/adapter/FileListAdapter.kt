@@ -14,6 +14,7 @@ class FileListAdapter(
     private val context: Context,
     private val dataset: List<FileDetail>
 ) : RecyclerView.Adapter<FileListAdapter.FileListViewHolder>() {
+
     class FileListViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         val fileImage: ImageView = view.findViewById(R.id.file_image)
         val fileName: TextView = view.findViewById(R.id.file_name)
@@ -27,20 +28,24 @@ class FileListAdapter(
         return FileListViewHolder(adapterLayout)
     }
 
-    override fun getItemCount() = dataset.size
+    override fun getItemCount(): Int {
+        return dataset.size
+    }
 
     override fun onBindViewHolder(holder: FileListViewHolder, position: Int) {
         val item = dataset[position]
         holder.fileName.text = item.fileName
         holder.fileDate.text = item.date
         holder.fileAuthor.text = item.author
-    }
-    if (item.isDirectory()) {
-        // 파일 폴더 사진으로 설정
-        holder.imageView.setImageResource(R.drawable.folder_image);
-    } else {
-        // 일반 파일 사진으로 설정
-        holder.imageView.setImageResource(R.drawable.file_image);
+
+        if (item.isDirectory) {
+            // 파일 폴더 사진으로 설정
+            holder.fileImage.setImageResource(R.drawable.folder_image)
+        } else {
+            // 일반 파일 사진으로 설정
+            holder.fileImage.setImageResource(R.drawable.file_image)
+        }
     }
 }
+
 
