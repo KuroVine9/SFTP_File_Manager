@@ -93,13 +93,13 @@ object JschImpl {
         return response
     }
 
-    fun getFileList(path: String): List<FileDetail> {
+    fun getFileList(path: String): List<FileDetail>? {
         val commandResult = this@JschImpl.command("ls -al $path")
         Log.d("Jsch", "result = $commandResult")
-        if (commandResult === null || commandResult == "") return mutableListOf()
+        if (commandResult === null || commandResult == "") return null
         val lines = commandResult.split("\n")
         Log.d("Jsch", "lines = ${lines.size}")
-        val fileLines = lines.slice(1..lines.size - 2)
+        val fileLines = lines.slice(3..lines.size - 2)
         Log.d("Jsch", "fileLines = $fileLines")
 
         val result = fileLines.map {
