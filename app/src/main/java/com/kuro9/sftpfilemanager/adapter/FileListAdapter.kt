@@ -48,7 +48,6 @@ class FileListAdapter(
                 holder.fileImage.setImageResource(R.drawable.file_image)
                 setOnClickListener { onFileClick(item) }
                 setOnLongClickListener { onFileLongClick(item) }
-
             }
         }
     }
