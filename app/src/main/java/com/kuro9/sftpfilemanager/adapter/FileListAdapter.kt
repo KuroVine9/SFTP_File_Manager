@@ -17,6 +17,7 @@ class FileListAdapter(
     private val onFileClick: (FileDetail) -> Unit,
     private val onFileLongClick: (FileDetail) -> Boolean
 ) : RecyclerView.Adapter<FileListAdapter.FileListViewHolder>() {
+
     class FileListViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         val fileImage: ImageView = view.findViewById(R.id.file_image)
         val fileName: TextView = view.findViewById(R.id.file_name)
@@ -43,8 +44,7 @@ class FileListAdapter(
                 holder.fileImage.setImageResource(R.drawable.folder_image)
                 setOnClickListener { onDirClick(item) }
 
-            }
-            else {
+            } else {
                 holder.fileImage.setImageResource(R.drawable.file_image)
                 setOnClickListener { onFileClick(item) }
                 setOnLongClickListener { onFileLongClick(item) }
